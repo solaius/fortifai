@@ -1,40 +1,46 @@
 import { api } from './api';
-import { 
-  Provider, 
-  VaultProvider, 
-  AWSProvider, 
-  AzureProvider, 
-  ProviderCreateRequest, 
-  ProviderUpdateRequest,
-  ProviderHealth,
-  ProviderTestResult,
-  ProviderType
-} from '../types/providers';
-import VaultService from './providers/vault';
+import { VaultService } from './providers/vault';
+import { Provider, VaultProvider, AWSProvider, AzureProvider, ProviderTestResult, ProviderHealth } from '../types/providers';
+import { mockProviders, shouldUseMockData, mockDelay, createMockResponse } from './mockData';
 
 export class ProvidersService {
-  private providers: Map<string, Provider> = new Map();
-  private vaultServices: Map<string, VaultService> = new Map();
+  private providers = new Map<string, Provider>();
+  private vaultServices = new Map<string, VaultService>();
 
   constructor() {
+    // Load providers on initialization
     this.loadProviders();
   }
 
-  // CRUD Operations
-  async createProvider(request: ProviderCreateRequest): Promise<Provider | null> {
+  // Provider CRUD operations
+  async createProvider(providerData: Omit<Provider, 'id' | 'createdAt' | 'updatedAt'>): Promise<Provider | null> {
     try {
-      const response = await api.post('/providers', request);
+      // In development with mock data enabled, simulate API call
+      if (shouldUseMockData()) {
+        await mockDelay();
+        const newProvider = {
+          ...providerData,
+          id: `mock-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as Provider;
+        
+        this.providers.set(newProvider.id, newProvider);
+        return newProvider;
+      }
+
+      const response = await api.post('/providers', providerData);
       
       if (response.success && response.data) {
-        const provider = response.data as Provider;
-        this.providers.set(provider.id, provider);
+        const newProvider = response.data as Provider;
+        this.providers.set(newProvider.id, newProvider);
         
-        // Initialize provider-specific service if needed
-        if (provider.type === 'vault') {
-          this.initializeVaultService(provider as VaultProvider);
+        // Initialize provider service if it's a Vault provider
+        if (newProvider.type === 'vault') {
+          this.initializeVaultService(newProvider as VaultProvider);
         }
         
-        return provider;
+        return newProvider;
       }
       return null;
     } catch (error) {
@@ -44,10 +50,20 @@ export class ProvidersService {
   }
 
   async getProvider(id: string): Promise<Provider | null> {
+    // Check cache first
+    if (this.providers.has(id)) {
+      return this.providers.get(id)!;
+    }
+
     try {
-      // Check cache first
-      if (this.providers.has(id)) {
-        return this.providers.get(id)!;
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        const mockProvider = mockProviders.find(p => p.id === id);
+        if (mockProvider) {
+          this.providers.set(mockProvider.id, mockProvider);
+          return mockProvider;
+        }
+        return null;
       }
 
       const response = await api.get(`/providers/${id}`);
@@ -55,6 +71,12 @@ export class ProvidersService {
       if (response.success && response.data) {
         const provider = response.data as Provider;
         this.providers.set(provider.id, provider);
+        
+        // Initialize provider service if it's a Vault provider
+        if (provider.type === 'vault') {
+          this.initializeVaultService(provider as VaultProvider);
+        }
+        
         return provider;
       }
       return null;
@@ -64,9 +86,31 @@ export class ProvidersService {
     }
   }
 
-  async updateProvider(id: string, request: ProviderUpdateRequest): Promise<Provider | null> {
+  async updateProvider(id: string, updates: Partial<Provider>): Promise<Provider | null> {
     try {
-      const response = await api.put(`/providers/${id}`, request);
+      // In development with mock data enabled, simulate API call
+      if (shouldUseMockData()) {
+        await mockDelay();
+        const existingProvider = this.providers.get(id);
+        if (!existingProvider) return null;
+        
+        const updatedProvider = {
+          ...existingProvider,
+          ...updates,
+          updatedAt: new Date().toISOString()
+        } as Provider;
+        
+        this.providers.set(id, updatedProvider);
+        
+        // Reinitialize provider service if config changed
+        if (updatedProvider.type === 'vault') {
+          this.initializeVaultService(updatedProvider as VaultProvider);
+        }
+        
+        return updatedProvider;
+      }
+
+      const response = await api.put(`/providers/${id}`, updates);
       
       if (response.success && response.data) {
         const updatedProvider = response.data as Provider;
@@ -88,6 +132,14 @@ export class ProvidersService {
 
   async deleteProvider(id: string): Promise<boolean> {
     try {
+      // In development with mock data enabled, simulate API call
+      if (shouldUseMockData()) {
+        await mockDelay();
+        this.providers.delete(id);
+        this.vaultServices.delete(id);
+        return true;
+      }
+
       const response = await api.delete(`/providers/${id}`);
       
       if (response.success) {
@@ -104,6 +156,24 @@ export class ProvidersService {
 
   async listProviders(): Promise<Provider[]> {
     try {
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        await mockDelay();
+        
+        // Clear existing providers and load mock data
+        this.providers.clear();
+        mockProviders.forEach(provider => {
+          this.providers.set(provider.id, provider);
+          
+          // Initialize provider services
+          if (provider.type === 'vault') {
+            this.initializeVaultService(provider as VaultProvider);
+          }
+        });
+        
+        return mockProviders;
+      }
+
       const response = await api.get('/providers');
       
       if (response.success && response.data) {
@@ -124,6 +194,13 @@ export class ProvidersService {
       return [];
     } catch (error) {
       console.error('Failed to list providers:', error);
+      
+      // In development, fall back to mock data if API fails
+      if (process.env.NODE_ENV === 'development' || typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        console.warn('🔄 Falling back to mock data due to API failure');
+        return this.listProviders(); // This will trigger the mock data path
+      }
+      
       return [];
     }
   }
@@ -151,7 +228,7 @@ export class ProvidersService {
           return {
             success: false,
             message: 'Unsupported provider type',
-            error: `Provider type ${provider.type} not supported`
+            error: `Provider type ${(provider as Provider).type} not supported`
           };
       }
     } catch (error) {

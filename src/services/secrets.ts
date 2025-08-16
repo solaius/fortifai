@@ -1,55 +1,63 @@
 import { api } from './api';
-import { 
-  SecretReference, 
-  CreateSecretReferenceRequest, 
-  UpdateSecretReferenceRequest, 
-  SecretReferenceFilter, 
-  SecretReferenceSearchResult 
-} from '../types/secrets';
 import { providersService } from './providers';
-import VaultService from './providers/vault';
+import { VaultService } from './providers/vault';
+import { SecretReference, SecretReferenceFilter, CreateSecretReferenceRequest, UpdateSecretReferenceRequest } from '../types/secrets';
+import { mockSecretReferences, shouldUseMockData, mockDelay, createMockPaginatedResponse } from './mockData';
 
 export class SecretsService {
-  private references: Map<string, SecretReference> = new Map();
+  private references = new Map<string, SecretReference>();
 
   constructor() {
+    // Load references on initialization
     this.loadReferences();
   }
 
-  // CRUD Operations
+  // Secret reference CRUD operations
   async createReference(request: CreateSecretReferenceRequest): Promise<SecretReference | null> {
     try {
-      // Validate provider exists and is accessible
-      const provider = await providersService.getProvider(request.providerId);
-      if (!provider) {
-        throw new Error('Provider not found or not accessible');
-      }
-
-      // Validate the secret path exists in the provider
-      const pathExists = await this.validateSecretPath(request.providerId, request.path);
-      if (!pathExists) {
-        throw new Error('Secret path not found in provider');
+      // In development with mock data enabled, simulate API call
+      if (shouldUseMockData()) {
+        await mockDelay();
+        const newReference = {
+          ...request,
+          id: `mock-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as SecretReference;
+        
+        this.references.set(newReference.id, newReference);
+        return newReference;
       }
 
       const response = await api.post('/secret-references', request);
       
       if (response.success && response.data) {
-        const reference = response.data as SecretReference;
-        this.references.set(reference.id, reference);
-        return reference;
+        const newReference = response.data as SecretReference;
+        this.references.set(newReference.id, newReference);
+        return newReference;
       }
       return null;
     } catch (error) {
       console.error('Failed to create secret reference:', error);
-      throw error;
+      return null;
     }
   }
 
   async getReference(id: string): Promise<SecretReference | null> {
+    // Check cache first
+    if (this.references.has(id)) {
+      return this.references.get(id)!;
+    }
+
     try {
-      // Check cache first
-      if (this.references.has(id)) {
-        return this.references.get(id)!;
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        const mockReference = mockSecretReferences.find(r => r.id === id);
+        if (mockReference) {
+          this.references.set(mockReference.id, mockReference);
+          return mockReference;
+        }
+        return null;
       }
 
       const response = await api.get(`/secret-references/${id}`);
@@ -68,6 +76,22 @@ export class SecretsService {
 
   async updateReference(id: string, request: UpdateSecretReferenceRequest): Promise<SecretReference | null> {
     try {
+      // In development with mock data enabled, simulate API call
+      if (shouldUseMockData()) {
+        await mockDelay();
+        const existingReference = this.references.get(id);
+        if (!existingReference) return null;
+        
+        const updatedReference = {
+          ...existingReference,
+          ...request,
+          updatedAt: new Date().toISOString()
+        } as SecretReference;
+        
+        this.references.set(id, updatedReference);
+        return updatedReference;
+      }
+
       const response = await api.put(`/secret-references/${id}`, request);
       
       if (response.success && response.data) {
@@ -78,12 +102,19 @@ export class SecretsService {
       return null;
     } catch (error) {
       console.error(`Failed to update secret reference ${id}:`, error);
-      throw error;
+      return null;
     }
   }
 
   async deleteReference(id: string): Promise<boolean> {
     try {
+      // In development with mock data enabled, simulate API call
+      if (shouldUseMockData()) {
+        await mockDelay();
+        this.references.delete(id);
+        return true;
+      }
+
       const response = await api.delete(`/secret-references/${id}`);
       
       if (response.success) {
@@ -93,49 +124,60 @@ export class SecretsService {
       return false;
     } catch (error) {
       console.error(`Failed to delete secret reference ${id}:`, error);
-      throw error;
+      return false;
     }
   }
 
-  async listReferences(filter?: SecretReferenceFilter): Promise<SecretReferenceSearchResult> {
+  async listReferences(filter?: SecretReferenceFilter): Promise<SecretReference[]> {
     try {
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        await mockDelay();
+        
+        // Clear existing references and load mock data
+        this.references.clear();
+        mockSecretReferences.forEach(reference => {
+          this.references.set(reference.id, reference);
+        });
+        
+        // Apply basic filtering if provided
+        let filteredReferences = mockSecretReferences;
+        if (filter) {
+          filteredReferences = this.applyMockFilter(mockSecretReferences, filter);
+        }
+        
+        return filteredReferences;
+      }
+
       const params = this.buildFilterParams(filter);
       const response = await api.get('/secret-references', { params });
       
       if (response.success && response.data) {
-        const result = response.data as SecretReferenceSearchResult;
+        const references = response.data as SecretReference[];
         
         // Update cache
-        result.references.forEach(reference => {
+        references.forEach(reference => {
           this.references.set(reference.id, reference);
         });
         
-        return result;
+        return references;
       }
-      
-      return {
-        references: [],
-        total: 0,
-        page: 1,
-        perPage: 50,
-        totalPages: 0,
-        facets: {
-          providers: [],
-          categories: [],
-          classifications: [],
-          environments: [],
-          teams: [],
-          tags: []
-        }
-      };
+      return [];
     } catch (error) {
       console.error('Failed to list secret references:', error);
-      throw error;
+      
+      // In development, fall back to mock data if API fails
+      if (process.env.NODE_ENV === 'development' || typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        console.warn('🔄 Falling back to mock data due to API failure');
+        return this.listReferences(filter); // This will trigger the mock data path
+      }
+      
+      return [];
     }
   }
 
   // Search and Discovery
-  async searchReferences(query: string, filter?: SecretReferenceFilter): Promise<SecretReferenceSearchResult> {
+  async searchReferences(query: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
     try {
       const params = {
         q: query,
@@ -145,64 +187,50 @@ export class SecretsService {
       const response = await api.get('/secret-references/search', { params });
       
       if (response.success && response.data) {
-        const result = response.data as SecretReferenceSearchResult;
+        const references = response.data as SecretReference[];
         
         // Update cache
-        result.references.forEach(reference => {
+        references.forEach(reference => {
           this.references.set(reference.id, reference);
         });
         
-        return result;
+        return references;
       }
-      
-      return {
-        references: [],
-        total: 0,
-        page: 1,
-        perPage: 50,
-        totalPages: 0,
-        facets: {
-          providers: [],
-          categories: [],
-          classifications: [],
-          environments: [],
-          teams: [],
-          tags: []
-        }
-      };
+      return [];
     } catch (error) {
       console.error('Failed to search secret references:', error);
-      throw error;
+      return [];
     }
   }
 
-  async getReferencesByProvider(providerId: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
+  // Provider-specific operations
+  async getReferencesForProvider(providerId: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
     try {
       const filterWithProvider = { ...filter, providerId };
       const result = await this.listReferences(filterWithProvider);
-      return result.references;
+      return result;
     } catch (error) {
       console.error(`Failed to get references for provider ${providerId}:`, error);
       return [];
     }
   }
 
-  async getReferencesByNamespace(namespace: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
+  async getReferencesForNamespace(namespace: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
     try {
       const filterWithNamespace = { ...filter, namespace };
       const result = await this.listReferences(filterWithNamespace);
-      return result.references;
+      return result;
     } catch (error) {
       console.error(`Failed to get references for namespace ${namespace}:`, error);
       return [];
     }
   }
 
-  async getReferencesByProject(project: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
+  async getReferencesForProject(project: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
     try {
       const filterWithProject = { ...filter, project };
       const result = await this.listReferences(filterWithProject);
-      return result.references;
+      return result;
     } catch (error) {
       console.error(`Failed to get references for project ${project}:`, error);
       return [];
@@ -273,7 +301,7 @@ export class SecretsService {
     }
   }
 
-  // Validation and Discovery
+  // Secret validation and discovery
   async validateSecretPath(providerId: string, path: string): Promise<boolean> {
     try {
       const provider = await providersService.getProvider(providerId);
@@ -372,6 +400,73 @@ export class SecretsService {
     if (filter.sortOrder) params.sort_order = filter.sortOrder;
 
     return params;
+  }
+
+  private applyMockFilter(references: SecretReference[], filter: SecretReferenceFilter): SecretReference[] {
+    let filtered = [...references];
+
+    if (filter.name) {
+      filtered = filtered.filter(r => r.name.toLowerCase().includes(filter.name!.toLowerCase()));
+    }
+    if (filter.providerId) {
+      filtered = filtered.filter(r => r.providerId === filter.providerId);
+    }
+    if (filter.providerType) {
+      filtered = filtered.filter(r => r.providerType === filter.providerType);
+    }
+    if (filter.namespace) {
+      filtered = filtered.filter(r => r.namespace === filter.namespace);
+    }
+    if (filter.project) {
+      filtered = filtered.filter(r => r.project === filter.project);
+    }
+    if (filter.category) {
+      filtered = filtered.filter(r => r.metadata.category === filter.category);
+    }
+    if (filter.priority) {
+      filtered = filtered.filter(r => r.metadata.priority === filter.priority);
+    }
+    if (filter.classification) {
+      filtered = filtered.filter(r => r.metadata.classification === filter.classification);
+    }
+    if (filter.environment) {
+      filtered = filtered.filter(r => r.metadata.environment === filter.environment);
+    }
+    if (filter.labels) {
+      filtered = filtered.filter(r => JSON.stringify(r.labels).includes(JSON.stringify(filter.labels)));
+    }
+    if (filter.annotations) {
+      filtered = filtered.filter(r => JSON.stringify(r.annotations).includes(JSON.stringify(filter.annotations)));
+    }
+    if (filter.owner) {
+      filtered = filtered.filter(r => r.metadata.owner === filter.owner);
+    }
+    if (filter.team) {
+      filtered = filtered.filter(r => r.metadata.team === filter.team);
+    }
+    if (filter.tags && filter.tags.length > 0) {
+      filtered = filtered.filter(r => r.tags.some(tag => filter.tags!.includes(tag)));
+    }
+    if (filter.createdAfter) {
+      filtered = filtered.filter(r => new Date(r.createdAt) >= new Date(filter.createdAfter!));
+    }
+    if (filter.createdBefore) {
+      filtered = filtered.filter(r => new Date(r.createdAt) <= new Date(filter.createdBefore!));
+    }
+    if (filter.updatedAfter) {
+      filtered = filtered.filter(r => new Date(r.updatedAt) >= new Date(filter.updatedAfter!));
+    }
+    if (filter.updatedBefore) {
+      filtered = filtered.filter(r => new Date(r.updatedAt) <= new Date(filter.updatedBefore!));
+    }
+    if (filter.lastRotatedAfter) {
+      filtered = filtered.filter(r => r.metadata.lastRotated && new Date(r.metadata.lastRotated) >= new Date(filter.lastRotatedAfter!));
+    }
+    if (filter.lastRotatedBefore) {
+      filtered = filtered.filter(r => r.metadata.lastRotated && new Date(r.metadata.lastRotated) <= new Date(filter.lastRotatedBefore!));
+    }
+
+    return filtered;
   }
 
   private async loadReferences(): Promise<void> {

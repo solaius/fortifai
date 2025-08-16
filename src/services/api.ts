@@ -3,6 +3,16 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 // API configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
+// Development mode configuration
+const isDevelopment = (
+  process.env.NODE_ENV === 'development' ||
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost') ||
+  (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1') ||
+  (typeof window !== 'undefined' && window.location.port === '5173')
+);
+const MAX_RETRIES_DEV = 1; // Reduce retries in development
+const MAX_RETRIES_PROD = 3; // Normal retries in production
+
 // Request/Response interfaces
 export interface ApiResponse<T = any> {
   data: T;
@@ -58,7 +68,7 @@ const createApiClient = (): AxiosInstance => {
       config.headers['X-Correlation-ID'] = generateCorrelationId();
 
       // Log request (in development)
-      if (import.meta.env.DEV) {
+      if (isDevelopment) {
         console.log('API Request:', {
           method: config.method?.toUpperCase(),
           url: config.url,
@@ -79,7 +89,7 @@ const createApiClient = (): AxiosInstance => {
   client.interceptors.response.use(
     (response: AxiosResponse) => {
       // Log response (in development)
-      if (import.meta.env.DEV) {
+      if (isDevelopment) {
         console.log('API Response:', {
           status: response.status,
           url: response.config.url,
@@ -122,6 +132,15 @@ const createApiClient = (): AxiosInstance => {
 
       // Handle other errors
       const apiError = createApiError(error);
+      
+      // In development, provide more helpful error messages
+      if (isDevelopment) {
+        if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+          console.warn('🔴 Backend API server is not running. Please start the backend server on port 8080 or update VITE_API_BASE_URL environment variable.');
+          console.warn('📝 For development, you can use mock data by setting VITE_USE_MOCK_DATA=true');
+        }
+      }
+      
       console.error('API Error:', apiError);
       return Promise.reject(apiError);
     }
@@ -142,21 +161,27 @@ const createApiError = (error: AxiosError): ApiError => {
     const code = data?.code || 'UNKNOWN_ERROR';
     return new ApiError(message, status, code, data);
   } else if (error.request) {
+    // Network error - provide more specific message in development
+    if (isDevelopment && error.code === 'ERR_NETWORK') {
+      return new ApiError('Backend server is not running. Please start the API server.', 0, 'NETWORK_ERROR');
+    }
     return new ApiError('Network error - no response received', 0, 'NETWORK_ERROR');
   } else {
     return new ApiError(error.message, 0, 'REQUEST_ERROR');
   }
 };
 
-// Retry logic
+// Retry logic with development mode consideration
 const retryRequest = async <T>(
   requestFn: () => Promise<T>,
-  maxRetries: number = 3,
+  maxRetries?: number,
   delay: number = 1000
 ): Promise<T> => {
+  // Use different retry limits for development vs production
+  const retryLimit = maxRetries ?? (isDevelopment ? MAX_RETRIES_DEV : MAX_RETRIES_PROD);
   let lastError: Error;
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let attempt = 1; attempt <= retryLimit; attempt++) {
     try {
       return await requestFn();
     } catch (error) {
@@ -169,7 +194,15 @@ const retryRequest = async <T>(
         }
       }
 
-      if (attempt === maxRetries) {
+      // In development, don't retry network errors as aggressively
+      if (isDevelopment && error instanceof ApiError && error.code === 'NETWORK_ERROR') {
+        if (attempt === 1) {
+          console.warn('🔄 Network error detected. In development mode, this usually means the backend server is not running.');
+        }
+        throw error; // Don't retry network errors in development
+      }
+
+      if (attempt === retryLimit) {
         throw lastError;
       }
 
