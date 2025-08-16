@@ -4,6 +4,8 @@ import {
   CardBody,
   CardHeader,
   CardTitle,
+  Stack,
+  StackItem,
   Grid,
   GridItem,
   Title,
@@ -61,187 +63,197 @@ const Dashboard: React.FC = () => {
   const getHealthBadge = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <span className="pf-v5-c-badge pf-m-success">Healthy</span>;
+        return <span className="pf-v6-c-badge pf-m-success">Healthy</span>;
       case 'warning':
-        return <span className="pf-v5-c-badge pf-m-warning">Warning</span>;
+        return <span className="pf-v6-c-badge pf-m-warning">Warning</span>;
       case 'critical':
-        return <span className="pf-v5-c-badge pf-m-danger">Critical</span>;
+        return <span className="pf-v6-c-badge pf-m-danger">Critical</span>;
       default:
-        return <span className="pf-v5-c-badge pf-m-default">Unknown</span>;
+        return <span className="pf-v6-c-badge pf-m-default">Unknown</span>;
     }
   };
 
   return (
-    <div>
-      <div>
-        <Title headingLevel="h1" size="2xl">
-          Secrets Management Dashboard
-        </Title>
-        <p>
-          Monitor and manage your secret providers, references, and access policies
-        </p>
-      </div>
+    <Stack hasGutter>
+      <StackItem>
+        <div>
+          <Title headingLevel="h1" size="2xl">
+            Secrets Management Dashboard
+          </Title>
+          <p>
+            Monitor and manage your secret providers, references, and access policies
+          </p>
+        </div>
+      </StackItem>
 
-      {/* Health Status Alert */}
-      <Alert
-        variant={stats.healthStatus === 'healthy' ? AlertVariant.success : AlertVariant.warning}
-        title={`System Status: ${stats.healthStatus.charAt(0).toUpperCase() + stats.healthStatus.slice(1)}`}
-        className="pf-v5-u-mt-md"
-      >
-        All secret providers are operational and accessible.
-      </Alert>
+      <StackItem>
+        {/* Health Status Alert */}
+        <Alert
+          variant={stats.healthStatus === 'healthy' ? AlertVariant.success : AlertVariant.warning}
+          title={`System Status: ${stats.healthStatus.charAt(0).toUpperCase() + stats.healthStatus.slice(1)}`}
+          className="pf-v6-u-mb-lg"
+        >
+          All secret providers are operational and accessible.
+        </Alert>
+      </StackItem>
 
-      {/* Quick Actions */}
-      <Card className="pf-v5-u-mt-lg">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardBody>
-          <Flex gap={{ default: 'gapMd' }} wrap="wrap">
-            <FlexItem>
-              <Button
-                variant={ButtonVariant.primary}
-                icon={<PlusIcon />}
-                onClick={() => navigate('/providers/new')}
-              >
-                Add Provider
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Button
-                variant={ButtonVariant.secondary}
-                icon={<KeyIcon />}
-                onClick={() => navigate('/secrets/new')}
-              >
-                Create Secret Reference
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Button
-                variant={ButtonVariant.secondary}
-                icon={<LinkIcon />}
-                onClick={() => navigate('/bindings/new')}
-              >
-                Create Binding
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Button
-                variant={ButtonVariant.secondary}
-                icon={<ShieldAltIcon />}
-                onClick={() => navigate('/policies/new')}
-              >
-                Create Policy
-              </Button>
-            </FlexItem>
-          </Flex>
-        </CardBody>
-      </Card>
+      <StackItem>
+        {/* Quick Actions */}
+        <Card className="pf-v6-u-mb-lg">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <Flex gap={{ default: 'gapMd' }} wrap="wrap">
+              <FlexItem>
+                <Button
+                  variant={ButtonVariant.primary}
+                  icon={<PlusIcon />}
+                  onClick={() => navigate('/providers/new')}
+                >
+                  Add Provider
+                </Button>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant={ButtonVariant.secondary}
+                  icon={<KeyIcon />}
+                  onClick={() => navigate('/secrets/new')}
+                >
+                  Create Secret Reference
+                </Button>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant={ButtonVariant.secondary}
+                  icon={<LinkIcon />}
+                  onClick={() => navigate('/bindings/new')}
+                >
+                  Create Binding
+                </Button>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant={ButtonVariant.secondary}
+                  icon={<ShieldAltIcon />}
+                  onClick={() => navigate('/policies/new')}
+                >
+                  Create Policy
+                </Button>
+              </FlexItem>
+            </Flex>
+          </CardBody>
+        </Card>
+      </StackItem>
 
-      {/* Statistics Cards */}
-      <Grid hasGutter className="pf-v5-u-mt-lg pf-v5-u-mb-md">
-        <GridItem span={3}>
-          <Card className="pf-v5-u-mb-sm">
-            <CardBody>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
-                <DatabaseIcon size={24} style={{ color: 'var(--pf-v5-global--primary-color--100)' }} />
-                                 <div>
-                   <h2>{stats.providers}</h2>
-                   <small>Secret Providers</small>
-                 </div>
-              </Flex>
-            </CardBody>
-          </Card>
-        </GridItem>
-        <GridItem span={3}>
-          <Card className="pf-v5-u-mb-sm">
-            <CardBody>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
-                <KeyIcon size={24} style={{ color: 'var(--pf-v5-global--success-color--100)' }} />
-                                 <div>
-                   <h2>{stats.secrets}</h2>
-                   <small>Secret References</small>
-                 </div>
-              </Flex>
-            </CardBody>
-          </Card>
-        </GridItem>
-        <GridItem span={3}>
-          <Card className="pf-v5-u-mb-sm">
-            <CardBody>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
-                <LinkIcon size={24} style={{ color: 'var(--pf-v5-global--success-color--100)' }} />
-                                 <div>
-                   <h2>{stats.bindings}</h2>
-                   <small>Active Bindings</small>
-                 </div>
-              </Flex>
-            </CardBody>
-          </Card>
-        </GridItem>
-        <GridItem span={3}>
-          <Card className="pf-v5-u-mb-sm">
-            <CardBody>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
-                <ShieldAltIcon size={24} style={{ color: 'var(--pf-v5-global--warning-color--100)' }} />
-                                 <div>
-                   <h2>{stats.policies}</h2>
-                   <small>Access Policies</small>
-                 </div>
-              </Flex>
-            </CardBody>
-          </Card>
-        </GridItem>
-      </Grid>
+      <StackItem>
+        {/* Statistics Cards */}
+        <Grid hasGutter className="pf-v6-u-mb-lg">
+          <GridItem span={3}>
+            <Card>
+              <CardBody>
+                <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
+                  <DatabaseIcon size={24} style={{ color: 'var(--pf-v6-global--primary-color--100)' }} />
+                  <div>
+                    <h2>{stats.providers}</h2>
+                    <small>Secret Providers</small>
+                  </div>
+                </Flex>
+              </CardBody>
+            </Card>
+          </GridItem>
+          <GridItem span={3}>
+            <Card>
+              <CardBody>
+                <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
+                  <KeyIcon size={24} style={{ color: 'var(--pf-v6-global--success-color--100)' }} />
+                  <div>
+                    <h2>{stats.secrets}</h2>
+                    <small>Secret References</small>
+                  </div>
+                </Flex>
+              </CardBody>
+            </Card>
+          </GridItem>
+          <GridItem span={3}>
+            <Card>
+              <CardBody>
+                <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
+                  <LinkIcon size={24} style={{ color: 'var(--pf-v6-global--success-color--100)' }} />
+                  <div>
+                    <h2>{stats.bindings}</h2>
+                    <small>Active Bindings</small>
+                  </div>
+                </Flex>
+              </CardBody>
+            </Card>
+          </GridItem>
+          <GridItem span={3}>
+            <Card>
+              <CardBody>
+                <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
+                  <ShieldAltIcon size={24} style={{ color: 'var(--pf-v6-global--warning-color--100)' }} />
+                  <div>
+                    <h2>{stats.policies}</h2>
+                    <small>Access Policies</small>
+                  </div>
+                </Flex>
+              </CardBody>
+            </Card>
+          </GridItem>
+        </Grid>
+      </StackItem>
 
-      {/* Recent Activity */}
-      <Card className="pf-v5-u-mt-xl">
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardBody>
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            {recentEvents.map((event) => (
-              <div
-                key={event.id}
-                style={{
-                  padding: 'var(--pf-v5-global--spacer--sm) 0',
-                  borderBottom: '1px solid var(--pf-v5-global--BorderColor--100)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                                 <div>
-                   <p style={{ fontWeight: 'bold' }}>
-                     {event.action}
-                   </p>
-                   <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
-                     {event.target} • {event.user}
-                   </small>
-                 </div>
-                <div style={{ textAlign: 'right' }}>
-                                     <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
-                     {event.time}
-                   </small>
-                                                         <span className="pf-v5-c-badge pf-m-success" style={{ marginLeft: 'var(--pf-v5-global--spacer--sm)' }}>
+      <StackItem>
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {recentEvents.map((event) => (
+                <div
+                  key={event.id}
+                  style={{
+                    padding: 'var(--pf-v6-global--spacer--sm) 0',
+                    borderBottom: '1px solid var(--pf-v6-global--BorderColor--100)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div>
+                    <p style={{ fontWeight: 'bold' }}>
+                      {event.action}
+                    </p>
+                    <small style={{ color: 'var(--pf-v6-global--Color--200)' }}>
+                      {event.target} • {event.user}
+                    </small>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <small style={{ color: 'var(--pf-v6-global--Color--200)' }}>
+                      {event.time}
+                    </small>
+                    <span className="pf-v6-c-badge pf-m-success" style={{ marginLeft: 'var(--pf-v6-global--spacer--sm)' }}>
                       {event.status}
                     </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 'var(--pf-v5-global--spacer--md)' }}>
-            <Button
-              variant={ButtonVariant.link}
-              onClick={() => navigate('/audit')}
-            >
-              View Full Audit Log
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
-    </div>
+              ))}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 'var(--pf-v6-global--spacer--md)' }}>
+              <Button
+                variant={ButtonVariant.link}
+                onClick={() => navigate('/audit')}
+              >
+                View Full Audit Log
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      </StackItem>
+    </Stack>
   );
 };
 
