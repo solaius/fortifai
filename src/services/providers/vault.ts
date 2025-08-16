@@ -53,9 +53,12 @@ export class VaultService {
         headers: this.getHeaders()
       });
 
-      if (response.success && response.data.auth?.client_token) {
-        this.token = response.data.auth.client_token;
-        return true;
+      if (response.success && response.data && typeof response.data === 'object' && 'auth' in response.data) {
+        const authData = response.data as { auth?: { client_token?: string } };
+        if (authData.auth?.client_token) {
+          this.token = authData.auth.client_token;
+          return true;
+        }
       }
       return false;
     } catch (error) {
@@ -74,9 +77,12 @@ export class VaultService {
         headers: this.getHeaders()
       });
 
-      if (response.success && response.data.auth?.client_token) {
-        this.token = response.data.auth.client_token;
-        return true;
+      if (response.success && response.data && typeof response.data === 'object' && 'auth' in response.data) {
+        const authData = response.data as { auth?: { client_token?: string } };
+        if (authData.auth?.client_token) {
+          this.token = authData.auth.client_token;
+          return true;
+        }
       }
       return false;
     } catch (error) {
@@ -109,12 +115,20 @@ export class VaultService {
         headers: this.getHeaders()
       });
 
-      if (response.success && response.data.data) {
-        return {
-          path,
-          data: response.data.data,
-          metadata: response.data.metadata || {}
-        };
+      if (response.success && response.data && typeof response.data === 'object' && 'data' in response.data) {
+        const secretData = response.data as { data?: Record<string, any>; metadata?: Record<string, any> };
+        if (secretData.data) {
+          return {
+            path,
+            data: secretData.data,
+            metadata: {
+              createdTime: secretData.metadata?.created_time || new Date().toISOString(),
+              deletionTime: secretData.metadata?.deletion_time,
+              destroyed: secretData.metadata?.destroyed || false,
+              version: secretData.metadata?.version || 1
+            }
+          };
+        }
       }
       return null;
     } catch (error) {
@@ -156,11 +170,14 @@ export class VaultService {
         headers: this.getHeaders()
       });
 
-      if (response.success && response.data.data) {
-        return {
-          path,
-          keys: response.data.data.keys || []
-        };
+      if (response.success && response.data && typeof response.data === 'object' && 'data' in response.data) {
+        const listData = response.data as { data?: { keys?: string[] } };
+        if (listData.data) {
+          return {
+            path,
+            keys: listData.data.keys || []
+          };
+        }
       }
       return null;
     } catch (error) {
@@ -177,8 +194,11 @@ export class VaultService {
         headers: this.getHeaders()
       });
 
-      if (response.success && response.data.data) {
-        return response.data.data;
+      if (response.success && response.data && typeof response.data === 'object' && 'data' in response.data) {
+        const mountData = response.data as { data?: Record<string, VaultMount> };
+        if (mountData.data) {
+          return mountData.data;
+        }
       }
       return null;
     } catch (error) {
@@ -200,7 +220,7 @@ export class VaultService {
       const responseTime = Date.now() - startTime;
       
       if (response.success) {
-        const data = response.data;
+        const data = response.data as any;
         return {
           status: this.determineHealthStatus(data),
           lastCheck: new Date().toISOString(),

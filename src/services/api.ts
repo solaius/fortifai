@@ -1,7 +1,20 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
-// API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+// API configuration - handle both test and runtime environments
+const getApiBaseUrl = () => {
+  // In test environment, use process.env
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+  }
+  // In runtime environment, try to access import.meta if available
+  if (typeof window !== 'undefined' && (window as any).__VITE_ENV__) {
+    return (window as any).__VITE_ENV__.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+  }
+  // Fallback
+  return 'http://localhost:8080/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Development mode configuration
 const isDevelopment = (
@@ -157,8 +170,8 @@ const generateCorrelationId = (): string => {
 const createApiError = (error: AxiosError): ApiError => {
   if (error.response) {
     const { status, data } = error.response;
-    const message = data?.message || error.message;
-    const code = data?.code || 'UNKNOWN_ERROR';
+    const message = (data as any)?.message || error.message;
+    const code = (data as any)?.code || 'UNKNOWN_ERROR';
     return new ApiError(message, status, code, data);
   } else if (error.request) {
     // Network error - provide more specific message in development
