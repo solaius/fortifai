@@ -1,156 +1,174 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
   Title,
   Button,
   ButtonVariant,
-  Flex,
-  FlexItem,
-  Grid,
-  GridItem,
-  Badge,
   Alert,
   AlertVariant,
-  SearchInput,
-  Select,
-  SelectOption,
+  Grid,
+  GridItem,
+  EmptyState,
+
+  Spinner,
+  Pagination,
+  PaginationVariant,
   Toolbar,
   ToolbarContent,
   ToolbarItem,
-  ToolbarGroup
+  ToolbarGroup,
+  ToolbarFilter,
+  ToolbarToggleGroup,
+  ToolbarToggleGroupItem
 } from '@patternfly/react-core';
 import { useNavigate } from 'react-router-dom';
-import KeyIcon from '@patternfly/react-icons/dist/esm/icons/key-icon';
-import PlusIcon from '@patternfly/react-icons/dist/esm/icons/plus-icon';
-import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
-import DatabaseIcon from '@patternfly/react-icons/dist/esm/icons/database-icon';
-import TagIcon from '@patternfly/react-icons/dist/esm/icons/tag-icon';
-import CalendarAltIcon from '@patternfly/react-icons/dist/esm/icons/calendar-alt-icon';
-
-interface SecretReference {
-  id: string;
-  name: string;
-  path: string;
-  provider: string;
-  providerType: 'vault' | 'aws' | 'azure';
-  version: string;
-  labels: string[];
-  lastRotated: string;
-  bindings: number;
-  status: 'active' | 'inactive' | 'expired';
-}
+import { PlusIcon, SearchIcon, FilterIcon } from '@patternfly/react-icons';
+import SecretCard from '../../components/Secrets/SecretCard';
+import SecretFilters from '../../components/Secrets/SecretFilters';
+import { SecretReference, SecretReferenceFilter } from '../../types/secrets';
+import { secretsService } from '../../services/secrets';
+import { providersService } from '../../services/providers';
 
 const Secrets: React.FC = () => {
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState('');
-  const [providerFilter, setProviderFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isProviderFilterOpen, setIsProviderFilterOpen] = useState(false);
-  const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
+  const [secrets, setSecrets] = useState<SecretReference[]>([]);
+  const [filteredSecrets, setFilteredSecrets] = useState<SecretReference[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<SecretReferenceFilter>({});
+  const [providers, setProviders] = useState<Array<{ id: string; name: string; type: string }>>([]);
+  const [namespaces, setNamespaces] = useState<string[]>(['default', 'development', 'staging', 'production']);
+  const [projects, setProjects] = useState<string[]>(['frontend', 'backend', 'ml', 'infrastructure']);
+  const [teams, setTeams] = useState<string[]>(['platform', 'security', 'devops', 'ml-engineering']);
+  const [categories, setCategories] = useState<string[]>(['api-keys', 'database', 'certificates', 'passwords', 'service-accounts']);
+  
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(12);
+  const [total, setTotal] = useState(0);
 
-  const [secrets] = useState<SecretReference[]>([
-    {
-      id: 'secret-1',
-      name: 'OpenAI API Key',
-      path: 'kv/data/openai/api-key',
-      provider: 'Corporate Vault',
-      providerType: 'vault',
-      version: 'latest',
-      labels: ['ai', 'api', 'production'],
-      lastRotated: '2024-01-15',
-      bindings: 3,
-      status: 'active'
-    },
-    {
-      id: 'secret-2',
-      name: 'Database Password',
-      path: 'kv/data/database/password',
-      provider: 'Corporate Vault',
-      providerType: 'vault',
-      version: 'v2',
-      labels: ['database', 'production'],
-      lastRotated: '2024-01-10',
-      bindings: 1,
-      status: 'active'
-    },
-    {
-      id: 'secret-3',
-      name: 'AWS Access Key',
-      path: 'aws/access-keys/app-1',
-      provider: 'AWS Secrets Manager',
-      providerType: 'aws',
-      version: 'latest',
-      labels: ['aws', 'access-key', 'staging'],
-      lastRotated: '2024-01-20',
-      bindings: 2,
-      status: 'active'
-    },
-    {
-      id: 'secret-4',
-      name: 'Azure Service Principal',
-      path: 'azure/service-principals/ml-service',
-      provider: 'Azure Key Vault',
-      providerType: 'azure',
-      version: 'v1',
-      labels: ['azure', 'service-principal', 'ml'],
-      lastRotated: '2024-01-05',
-      bindings: 0,
-      status: 'inactive'
-    }
-  ]);
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const getProviderIcon = (type: string) => {
-    switch (type) {
-      case 'vault':
-        return <DatabaseIcon style={{ color: 'var(--pf-v5-global--primary-color--100)' }} />;
-      case 'aws':
-        return <DatabaseIcon style={{ color: 'var(--pf-v5-global--warning-color--100)' }} />;
-      case 'azure':
-        return <DatabaseIcon style={{ color: 'var(--pf-v5-global--info-color--100)' }} />;
-      default:
-        return <DatabaseIcon />;
+  // Load secrets when filter changes
+  useEffect(() => {
+    loadSecrets();
+  }, [filter, page, perPage]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Load providers
+      const providerList = await providersService.listProviders();
+      setProviders(providerList.map(p => ({ id: p.id, name: p.name, type: p.type })));
+      
+      // Load secrets
+      await loadSecrets();
+    } catch (error) {
+      setError('Failed to load data');
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <span className="pf-v5-c-badge pf-m-success">Active</span>;
-      case 'inactive':
-        return <span className="pf-v5-c-badge pf-m-default">Inactive</span>;
-      case 'expired':
-        return <span className="pf-v5-c-badge pf-m-danger">Expired</span>;
-      default:
-        return <span className="pf-v5-c-badge pf-m-default">Unknown</span>;
+  const loadSecrets = async () => {
+    try {
+      const result = await secretsService.searchReferences('', filter, page, perPage);
+      setSecrets(result.references);
+      setFilteredSecrets(result.references);
+      setTotal(result.total);
+    } catch (error) {
+      setError('Failed to load secrets');
+      console.error('Error loading secrets:', error);
     }
   };
 
-  const filteredSecrets = secrets.filter(secret => {
-    const matchesSearch = secret.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-                         secret.path.toLowerCase().includes(searchValue.toLowerCase()) ||
-                         secret.labels.some(label => label.toLowerCase().includes(searchValue.toLowerCase()));
-    const matchesProvider = providerFilter === 'all' || secret.providerType === providerFilter;
-    const matchesStatus = statusFilter === 'all' || secret.status === statusFilter;
-    
-    return matchesSearch && matchesProvider && matchesStatus;
-  });
+  const handleFilterChange = (newFilter: SecretReferenceFilter) => {
+    setFilter(newFilter);
+    setPage(1); // Reset to first page when filter changes
+  };
 
-  const providerOptions = [
-    { value: 'all', label: 'All Providers' },
-    { value: 'vault', label: 'HashiCorp Vault' },
-    { value: 'aws', label: 'AWS Secrets Manager' },
-    { value: 'azure', label: 'Azure Key Vault' }
-  ];
+  const handleClearFilters = () => {
+    setFilter({});
+    setPage(1);
+  };
 
-  const statusOptions = [
-    { value: 'all', label: 'All Status' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'expired', label: 'Expired' }
-  ];
+  const handleView = (id: string) => {
+    navigate(`/secrets/${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/secrets/${id}/edit`);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this secret reference?')) {
+      try {
+        await secretsService.deleteReference(id);
+        await loadSecrets(); // Reload the list
+      } catch (error) {
+        setError('Failed to delete secret reference');
+        console.error('Error deleting secret:', error);
+      }
+    }
+  };
+
+  const handleCopyReference = (id: string) => {
+    navigator.clipboard.writeText(id);
+    // You could add a toast notification here
+  };
+
+  const handlePageChange = (newPage: number, newPerPage: number) => {
+    setPage(newPage);
+    setPerPage(newPerPage);
+  };
+
+  if (loading) {
+    return (
+      <div>
+        <div>
+          <Title headingLevel="h1" size="2xl">
+            Secrets Catalog
+          </Title>
+          <p>
+            Browse and manage your secret references
+          </p>
+        </div>
+        
+        <div className="pf-v5-u-text-align-center pf-v5-u-mt-xl">
+          <Spinner size="xl" />
+          <p className="pf-v5-u-mt-md">Loading secrets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <div>
+          <Title headingLevel="h1" size="2xl">
+            Secrets Catalog
+          </Title>
+          <p>
+            Browse and manage your secret references
+          </p>
+        </div>
+        
+        <Alert
+          variant={AlertVariant.danger}
+          title="Error"
+          className="pf-v5-u-mt-md"
+        >
+          {error}
+        </Alert>
+      </div>
+    );
+  }
 
   if (secrets.length === 0) {
     return (
@@ -164,15 +182,13 @@ const Secrets: React.FC = () => {
           </p>
         </div>
 
-        <Card className="pf-v5-u-mt-xl">
-          <CardBody style={{ textAlign: 'center', padding: 'var(--pf-v5-global--spacer--xl)' }}>
-            <SearchIcon size="lg" style={{ color: 'var(--pf-v5-global--Color--200)', marginBottom: 'var(--pf-v5-global--spacer--md)' }} />
-            <Title headingLevel="h4" className="pf-v5-u-mb-md">
-              No secret references found
-            </Title>
-            <p className="pf-v5-u-mb-lg">
-              Get started by creating your first secret reference from an available provider.
-            </p>
+        <EmptyState className="pf-v5-u-mt-xl">
+          <div className="pf-v5-u-text-align-center">
+            <div className="pf-v5-u-mb-md">
+              <SearchIcon size="lg" />
+            </div>
+            <h4>No secret references found</h4>
+            <p>Get started by creating your first secret reference from an available provider.</p>
             <Button
               variant={ButtonVariant.primary}
               icon={<PlusIcon />}
@@ -180,8 +196,8 @@ const Secrets: React.FC = () => {
             >
               Create Secret Reference
             </Button>
-          </CardBody>
-        </Card>
+          </div>
+        </EmptyState>
       </div>
     );
   }
@@ -203,56 +219,24 @@ const Secrets: React.FC = () => {
         title="Secret References Summary"
         className="pf-v5-u-mt-md"
       >
-        {filteredSecrets.length} of {secrets.length} secret references shown. {secrets.filter(s => s.status === 'active').length} are currently active.
+        {filteredSecrets.length} of {total} secret references shown. {secrets.filter(s => s.metadata?.priority === 'high' || s.metadata?.priority === 'critical').length} are high priority.
       </Alert>
+
+      {/* Filters */}
+      <SecretFilters
+        filter={filter}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        providers={providers}
+        namespaces={namespaces}
+        projects={projects}
+        teams={teams}
+        categories={categories}
+      />
 
       {/* Toolbar */}
       <Toolbar className="pf-v5-u-mt-md">
         <ToolbarContent>
-          <ToolbarGroup>
-            <ToolbarItem>
-              <SearchInput
-                placeholder="Search secrets..."
-                value={searchValue}
-                onChange={setSearchValue}
-                onClear={() => setSearchValue('')}
-              />
-            </ToolbarItem>
-            <ToolbarItem>
-              <Select
-                isOpen={isProviderFilterOpen}
-                onToggle={() => setIsProviderFilterOpen(!isProviderFilterOpen)}
-                selections={providerFilter}
-                onSelect={(event, selection) => {
-                  setProviderFilter(selection as string);
-                  setIsProviderFilterOpen(false);
-                }}
-              >
-                {providerOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
-            </ToolbarItem>
-            <ToolbarItem>
-              <Select
-                isOpen={isStatusFilterOpen}
-                onToggle={() => setIsStatusFilterOpen(!isStatusFilterOpen)}
-                selections={statusFilter}
-                onSelect={(event, selection) => {
-                  setStatusFilter(selection as string);
-                  setIsStatusFilterOpen(false);
-                }}
-              >
-                {statusOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
-            </ToolbarItem>
-          </ToolbarGroup>
           <ToolbarGroup>
             <ToolbarItem>
               <Button
@@ -264,6 +248,13 @@ const Secrets: React.FC = () => {
               </Button>
             </ToolbarItem>
           </ToolbarGroup>
+          <ToolbarGroup>
+            <ToolbarItem>
+              <span className="pf-v5-u-color-200">
+                {total} total references
+              </span>
+            </ToolbarItem>
+          </ToolbarGroup>
         </ToolbarContent>
       </Toolbar>
 
@@ -271,75 +262,35 @@ const Secrets: React.FC = () => {
       <Grid hasGutter className="pf-v5-u-mt-md">
         {filteredSecrets.map((secret) => (
           <GridItem key={secret.id} span={6}>
-            <Card isHoverable onClick={() => navigate(`/secrets/${secret.id}`)}>
-              <CardHeader>
-                <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
-                  {getProviderIcon(secret.providerType)}
-                  <div>
-                    <CardTitle>{secret.name}</CardTitle>
-                    <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
-                      {secret.provider}
-                    </small>
-                  </div>
-                </Flex>
-                <FlexItem align={{ default: 'alignRight' }}>
-                  {getStatusBadge(secret.status)}
-                </FlexItem>
-              </CardHeader>
-              <CardBody>
-                <div style={{ marginBottom: 'var(--pf-v5-global--spacer--sm)' }}>
-                  <small style={{ fontWeight: 'bold' }}>
-                    Path:
-                  </small>
-                  <small style={{ marginLeft: 'var(--pf-v5-global--spacer--xs)' }}>
-                    {secret.path}
-                  </small>
-                </div>
-
-                <div style={{ marginBottom: 'var(--pf-v5-global--spacer--sm)' }}>
-                  <small style={{ fontWeight: 'bold' }}>
-                    Version:
-                  </small>
-                  <small style={{ marginLeft: 'var(--pf-v5-global--spacer--xs)' }}>
-                    {secret.version}
-                  </small>
-                </div>
-
-                <div style={{ marginBottom: 'var(--pf-v5-global--spacer--sm)' }}>
-                  <small style={{ fontWeight: 'bold' }}>
-                    Labels:
-                  </small>
-                  <div style={{ marginLeft: 'var(--pf-v5-global--spacer--xs)' }}>
-                                         {secret.labels.map((label, index) => (
-                       <span key={index} className="pf-v5-c-badge pf-m-outline" style={{ marginRight: 'var(--pf-v5-global--spacer--xs)' }}>
-                         {label}
-                       </span>
-                     ))}
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 'var(--pf-v5-global--spacer--sm)' }}>
-                  <small style={{ fontWeight: 'bold' }}>
-                    Bindings:
-                  </small>
-                  <small style={{ marginLeft: 'var(--pf-v5-global--spacer--xs)' }}>
-                    {secret.bindings} active binding{secret.bindings !== 1 ? 's' : ''}
-                  </small>
-                </div>
-
-                <div>
-                  <small style={{ fontWeight: 'bold' }}>
-                    Last Rotated:
-                  </small>
-                  <small style={{ marginLeft: 'var(--pf-v5-global--spacer--xs)' }}>
-                    {secret.lastRotated}
-                  </small>
-                </div>
-              </CardBody>
-            </Card>
+            <SecretCard
+              secret={secret}
+              onView={handleView}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onCopyReference={handleCopyReference}
+            />
           </GridItem>
         ))}
       </Grid>
+
+      {/* Pagination */}
+      {total > perPage && (
+        <div className="pf-v5-u-mt-lg pf-v5-u-text-align-center">
+          <Pagination
+            itemCount={total}
+            page={page}
+            perPage={perPage}
+            onSetPage={(event, newPage) => handlePageChange(newPage, perPage)}
+            onPerPageSelect={(event, newPerPage) => handlePageChange(1, newPerPage)}
+            variant={PaginationVariant.bottom}
+            perPageOptions={[
+              { title: '12', value: 12 },
+              { title: '24', value: 24 },
+              { title: '48', value: 48 }
+            ]}
+          />
+        </div>
+      )}
     </div>
   );
 };

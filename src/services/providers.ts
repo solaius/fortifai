@@ -1,170 +1,336 @@
-import { api, ApiResponse, PaginatedResponse } from './api';
-
-export interface Provider {
-  id: string;
-  name: string;
-  type: 'vault' | 'aws' | 'azure';
-  status: 'healthy' | 'warning' | 'critical' | 'disconnected';
-  authMethod: string;
-  address: string;
-  scopes: string[];
-  lastHealthCheck: string;
-  secretCount: number;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-}
-
-export interface CreateProviderRequest {
-  name: string;
-  type: 'vault' | 'aws' | 'azure';
-  authMethod: string;
-  address: string;
-  scopes: string[];
-  config: Record<string, any>;
-}
-
-export interface UpdateProviderRequest {
-  name?: string;
-  authMethod?: string;
-  address?: string;
-  scopes?: string[];
-  config?: Record<string, any>;
-}
-
-export interface ProviderHealth {
-  status: 'healthy' | 'warning' | 'critical' | 'disconnected';
-  lastCheck: string;
-  responseTime: number;
-  error?: string;
-}
-
-export interface ProviderSecret {
-  id: string;
-  name: string;
-  path: string;
-  version: string;
-  lastRotated: string;
-  labels: Record<string, string>;
-  metadata: Record<string, any>;
-}
+import { api } from './api';
+import { 
+  Provider, 
+  VaultProvider, 
+  AWSProvider, 
+  AzureProvider, 
+  ProviderCreateRequest, 
+  ProviderUpdateRequest,
+  ProviderHealth,
+  ProviderTestResult,
+  ProviderType
+} from '../types/providers';
+import VaultService from './providers/vault';
 
 export class ProvidersService {
-  private static readonly BASE_URL = '/providers';
+  private providers: Map<string, Provider> = new Map();
+  private vaultServices: Map<string, VaultService> = new Map();
 
-  // Get all providers
-  static async getProviders(
-    page: number = 1,
-    perPage: number = 50
-  ): Promise<PaginatedResponse<Provider>> {
-    return api.getPaginated<Provider>(this.BASE_URL, page, perPage);
+  constructor() {
+    this.loadProviders();
   }
 
-  // Get provider by ID
-  static async getProvider(id: string): Promise<ApiResponse<Provider>> {
-    return api.get<Provider>(`${this.BASE_URL}/${id}`);
+  // CRUD Operations
+  async createProvider(request: ProviderCreateRequest): Promise<Provider | null> {
+    try {
+      const response = await api.post('/providers', request);
+      
+      if (response.success && response.data) {
+        const provider = response.data as Provider;
+        this.providers.set(provider.id, provider);
+        
+        // Initialize provider-specific service if needed
+        if (provider.type === 'vault') {
+          this.initializeVaultService(provider as VaultProvider);
+        }
+        
+        return provider;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to create provider:', error);
+      return null;
+    }
   }
 
-  // Create new provider
-  static async createProvider(data: CreateProviderRequest): Promise<ApiResponse<Provider>> {
-    return api.post<Provider>(this.BASE_URL, data);
+  async getProvider(id: string): Promise<Provider | null> {
+    try {
+      // Check cache first
+      if (this.providers.has(id)) {
+        return this.providers.get(id)!;
+      }
+
+      const response = await api.get(`/providers/${id}`);
+      
+      if (response.success && response.data) {
+        const provider = response.data as Provider;
+        this.providers.set(provider.id, provider);
+        return provider;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Failed to get provider ${id}:`, error);
+      return null;
+    }
   }
 
-  // Update provider
-  static async updateProvider(id: string, data: UpdateProviderRequest): Promise<ApiResponse<Provider>> {
-    return api.put<Provider>(`${this.BASE_URL}/${id}`, data);
+  async updateProvider(id: string, request: ProviderUpdateRequest): Promise<Provider | null> {
+    try {
+      const response = await api.put(`/providers/${id}`, request);
+      
+      if (response.success && response.data) {
+        const updatedProvider = response.data as Provider;
+        this.providers.set(id, updatedProvider);
+        
+        // Reinitialize provider service if config changed
+        if (updatedProvider.type === 'vault') {
+          this.initializeVaultService(updatedProvider as VaultProvider);
+        }
+        
+        return updatedProvider;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Failed to update provider ${id}:`, error);
+      return null;
+    }
   }
 
-  // Delete provider
-  static async deleteProvider(id: string): Promise<ApiResponse<void>> {
-    return api.delete<void>(`${this.BASE_URL}/${id}`);
+  async deleteProvider(id: string): Promise<boolean> {
+    try {
+      const response = await api.delete(`/providers/${id}`);
+      
+      if (response.success) {
+        this.providers.delete(id);
+        this.vaultServices.delete(id);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(`Failed to delete provider ${id}:`, error);
+      return false;
+    }
   }
 
-  // Test provider connection
-  static async testConnection(id: string): Promise<ApiResponse<ProviderHealth>> {
-    return api.post<ProviderHealth>(`${this.BASE_URL}/${id}/test`);
+  async listProviders(): Promise<Provider[]> {
+    try {
+      const response = await api.get('/providers');
+      
+      if (response.success && response.data) {
+        const providers = response.data as Provider[];
+        
+        // Update cache
+        providers.forEach(provider => {
+          this.providers.set(provider.id, provider);
+          
+          // Initialize provider services
+          if (provider.type === 'vault') {
+            this.initializeVaultService(provider as VaultProvider);
+          }
+        });
+        
+        return providers;
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to list providers:', error);
+      return [];
+    }
   }
 
-  // Get provider health
-  static async getProviderHealth(id: string): Promise<ApiResponse<ProviderHealth>> {
-    return api.get<ProviderHealth>(`${this.BASE_URL}/${id}/health`);
+  // Provider-specific operations
+  async testProviderConnection(id: string): Promise<ProviderTestResult> {
+    const provider = await this.getProvider(id);
+    if (!provider) {
+      return {
+        success: false,
+        message: 'Provider not found',
+        error: 'Provider not found'
+      };
+    }
+
+    try {
+      switch (provider.type) {
+        case 'vault':
+          return await this.testVaultConnection(provider as VaultProvider);
+        case 'aws':
+          return await this.testAWSConnection(provider as AWSProvider);
+        case 'azure':
+          return await this.testAzureConnection(provider as AzureProvider);
+        default:
+          return {
+            success: false,
+            message: 'Unsupported provider type',
+            error: `Provider type ${provider.type} not supported`
+          };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Connection test failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 
-  // List secrets from provider
-  static async listProviderSecrets(
-    id: string,
-    path?: string,
-    page: number = 1,
-    perPage: number = 50
-  ): Promise<PaginatedResponse<ProviderSecret>> {
-    const params = path ? { path } : {};
-    return api.getPaginated<ProviderSecret>(
-      `${this.BASE_URL}/${id}/secrets`,
-      page,
-      perPage,
-      { params }
-    );
+  async getProviderHealth(id: string): Promise<ProviderHealth | null> {
+    const provider = await this.getProvider(id);
+    if (!provider) {
+      return null;
+    }
+
+    try {
+      switch (provider.type) {
+        case 'vault':
+          return await this.getVaultHealth(provider as VaultProvider);
+        case 'aws':
+          return await this.getAWSHealth(provider as AWSProvider);
+        case 'azure':
+          return await this.getAzureHealth(provider as AzureProvider);
+        default:
+          return null;
+      }
+    } catch (error) {
+      console.error(`Failed to get health for provider ${id}:`, error);
+      return null;
+    }
   }
 
-  // Get provider statistics
-  static async getProviderStats(id: string): Promise<ApiResponse<{
-    totalSecrets: number;
-    activeSecrets: number;
-    lastSync: string;
-    syncStatus: 'success' | 'failed' | 'in_progress';
-  }>> {
-    return api.get(`${this.BASE_URL}/${id}/stats`);
+  // Vault-specific operations
+  private async testVaultConnection(provider: VaultProvider): Promise<ProviderTestResult> {
+    const vaultService = this.vaultServices.get(provider.id);
+    if (!vaultService) {
+      return {
+        success: false,
+        message: 'Vault service not initialized',
+        error: 'Service not initialized'
+      };
+    }
+
+    // Authenticate with the provider
+    const authSuccess = await this.authenticateVaultProvider(provider);
+    if (!authSuccess) {
+      return {
+        success: false,
+        message: 'Vault authentication failed',
+        error: 'Invalid credentials or configuration'
+      };
+    }
+
+    // Test connection
+    return await vaultService.testConnection();
   }
 
-  // Sync provider secrets
-  static async syncProviderSecrets(id: string): Promise<ApiResponse<{
-    syncedCount: number;
-    errors: string[];
-  }>> {
-    return api.post(`${this.BASE_URL}/${id}/sync`);
+  private async getVaultHealth(provider: VaultProvider): Promise<ProviderHealth | null> {
+    const vaultService = this.vaultServices.get(provider.id);
+    if (!vaultService) {
+      return null;
+    }
+
+    return await vaultService.getHealth();
   }
 
-  // Get provider types
-  static async getProviderTypes(): Promise<ApiResponse<{
-    types: Array<{
-      type: string;
-      name: string;
-      description: string;
-      authMethods: string[];
-      features: string[];
-    }>;
-  }>> {
-    return api.get(`${this.BASE_URL}/types`);
+  private async authenticateVaultProvider(provider: VaultProvider): Promise<boolean> {
+    const vaultService = this.vaultServices.get(provider.id);
+    if (!vaultService) {
+      return false;
+    }
+
+    try {
+      switch (provider.auth.method) {
+        case 'approle':
+          if (provider.auth.appRole) {
+            return await vaultService.authenticateWithAppRole(
+              provider.auth.appRole.roleId,
+              provider.auth.appRole.secretId
+            );
+          }
+          break;
+        case 'kubernetes':
+          if (provider.auth.kubernetes) {
+            return await vaultService.authenticateWithKubernetes(
+              provider.auth.kubernetes.role,
+              provider.auth.kubernetes.jwt,
+              provider.auth.kubernetes.mountPath
+            );
+          }
+          break;
+        case 'token':
+          if (provider.auth.token) {
+            return await vaultService.authenticateWithToken(provider.auth.token);
+          }
+          break;
+      }
+      return false;
+    } catch (error) {
+      console.error(`Vault authentication failed for provider ${provider.id}:`, error);
+      return false;
+    }
   }
 
-  // Get auth methods for provider type
-  static async getAuthMethods(providerType: string): Promise<ApiResponse<{
-    authMethods: Array<{
-      method: string;
-      name: string;
-      description: string;
-      configSchema: Record<string, any>;
-    }>;
-  }>> {
-    return api.get(`${this.BASE_URL}/types/${providerType}/auth-methods`);
+  // AWS-specific operations
+  private async testAWSConnection(provider: AWSProvider): Promise<ProviderTestResult> {
+    // TODO: Implement AWS connection testing
+    return {
+      success: false,
+      message: 'AWS connection testing not yet implemented',
+      error: 'Not implemented'
+    };
   }
 
-  // Validate provider configuration
-  static async validateConfig(
-    type: string,
-    authMethod: string,
-    config: Record<string, any>
-  ): Promise<ApiResponse<{
-    valid: boolean;
-    errors: string[];
-    warnings: string[];
-  }>> {
-    return api.post(`${this.BASE_URL}/validate-config`, {
-      type,
-      authMethod,
-      config,
+  private async getAWSHealth(provider: AWSProvider): Promise<ProviderHealth | null> {
+    // TODO: Implement AWS health checking
+    return null;
+  }
+
+  // Azure-specific operations
+  private async testAzureConnection(provider: AzureProvider): Promise<ProviderTestResult> {
+    // TODO: Implement Azure connection testing
+    return {
+      success: false,
+      message: 'Azure connection testing not yet implemented',
+      error: 'Not implemented'
+    };
+  }
+
+  private async getAzureHealth(provider: AzureProvider): Promise<ProviderHealth | null> {
+    // TODO: Implement Azure health checking
+    return null;
+  }
+
+  // Service initialization
+  private initializeVaultService(provider: VaultProvider): void {
+    const vaultService = new VaultService(provider.config);
+    this.vaultServices.set(provider.id, vaultService);
+  }
+
+  // Utility methods
+  private async loadProviders(): Promise<void> {
+    try {
+      await this.listProviders();
+    } catch (error) {
+      console.error('Failed to load providers:', error);
+    }
+  }
+
+  getProviderService(id: string): VaultService | null {
+    return this.vaultServices.get(id) || null;
+  }
+
+  // Health monitoring
+  async monitorAllProviders(): Promise<Map<string, ProviderHealth>> {
+    const healthMap = new Map<string, ProviderHealth>();
+    
+    for (const [id, provider] of this.providers) {
+      const health = await this.getProviderHealth(id);
+      if (health) {
+        healthMap.set(id, health);
+      }
+    }
+    
+    return healthMap;
+  }
+
+  // Cleanup
+  cleanup(): void {
+    this.vaultServices.forEach(service => {
+      service.logout();
     });
+    this.vaultServices.clear();
+    this.providers.clear();
   }
 }
 
-export default ProvidersService;
+// Export singleton instance
+export const providersService = new ProvidersService();
+export default providersService;

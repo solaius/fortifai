@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // API configuration
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 // Request/Response interfaces
 export interface ApiResponse<T = any> {
@@ -58,7 +58,7 @@ const createApiClient = (): AxiosInstance => {
       config.headers['X-Correlation-ID'] = generateCorrelationId();
 
       // Log request (in development)
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.log('API Request:', {
           method: config.method?.toUpperCase(),
           url: config.url,
@@ -79,7 +79,7 @@ const createApiClient = (): AxiosInstance => {
   client.interceptors.response.use(
     (response: AxiosResponse) => {
       // Log response (in development)
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.log('API Response:', {
           status: response.status,
           url: response.config.url,
