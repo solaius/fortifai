@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   ExpandableSection,
   TextInput,
-  Select,
-  SelectOption,
-
   Checkbox,
   Button,
   ButtonVariant,
@@ -13,16 +10,13 @@ import {
   Grid,
   GridItem,
   FormGroup,
-  ChipGroup,
-  Chip,
   DatePicker,
-
   TimePicker,
-  TimePickerInput,
   Divider,
   Title,
   Badge
 } from '@patternfly/react-core';
+import CustomSelect from '../Common/CustomSelect';
 import {
   SearchIcon,
   FilterIcon,
@@ -97,12 +91,12 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
     onFilterChange(newFilter);
   };
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = (event: React.FormEvent<HTMLInputElement>, value: string) => {
     setSearchQuery(value);
     updateFilter({ name: value || undefined });
   };
 
-  const handleProviderChange = (selection: string) => {
+  const handleProviderChange = (event: any, selection: string) => {
     const newProviders = selectedProviders.includes(selection)
       ? selectedProviders.filter(p => p !== selection)
       : [...selectedProviders, selection];
@@ -111,7 +105,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
     updateFilter({ providerId: newProviders.length === 1 ? newProviders[0] : undefined });
   };
 
-  const handleNamespaceChange = (selection: string) => {
+  const handleNamespaceChange = (event: any, selection: string) => {
     const newNamespaces = selectedNamespaces.includes(selection)
       ? selectedNamespaces.filter(n => n !== selection)
       : [...selectedNamespaces, selection];
@@ -120,7 +114,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
     updateFilter({ namespace: newNamespaces.length === 1 ? newNamespaces[0] : undefined });
   };
 
-  const handleProjectChange = (selection: string) => {
+  const handleProjectChange = (event: any, selection: string) => {
     const newProjects = selectedProjects.includes(selection)
       ? selectedProjects.filter(p => p !== selection)
       : [...selectedProjects, selection];
@@ -129,7 +123,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
     updateFilter({ project: newProjects.length === 1 ? newProjects[0] : undefined });
   };
 
-  const handleTeamChange = (selection: string) => {
+  const handleTeamChange = (event: any, selection: string) => {
     const newTeams = selectedTeams.includes(selection)
       ? selectedTeams.filter(t => t !== selection)
       : [...selectedTeams, selection];
@@ -138,7 +132,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
     updateFilter({ team: newTeams.length === 1 ? newTeams[0] : undefined });
   };
 
-  const handleCategoryChange = (selection: string) => {
+  const handleCategoryChange = (event: any, selection: string) => {
     const newCategories = selectedCategories.includes(selection)
       ? selectedCategories.filter(c => c !== selection)
       : [...selectedCategories, selection];
@@ -147,34 +141,34 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
     updateFilter({ category: newCategories.length === 1 ? newCategories[0] : undefined });
   };
 
-  const handleClassificationChange = (selection: string) => {
+  const handleClassificationChange = (event: any, selection: string) => {
     const newClassifications = selectedClassifications.includes(selection)
       ? selectedClassifications.filter(c => c !== selection)
       : [...selectedClassifications, selection];
     
     setSelectedClassifications(newClassifications);
-    updateFilter({ classification: newClassifications.length === 1 ? newClassifications[0] : undefined });
+    updateFilter({ classification: newClassifications.length === 1 ? newClassifications[0] as 'public' | 'internal' | 'confidential' | 'restricted' | 'secret' : undefined });
   };
 
-  const handleEnvironmentChange = (selection: string) => {
+  const handleEnvironmentChange = (event: any, selection: string) => {
     const newEnvironments = selectedEnvironments.includes(selection)
       ? selectedEnvironments.filter(e => e !== selection)
       : [...selectedEnvironments, selection];
     
     setSelectedEnvironments(newEnvironments);
-    updateFilter({ environment: newEnvironments.length === 1 ? newEnvironments[0] : undefined });
+    updateFilter({ environment: newEnvironments.length === 1 ? newEnvironments[0] as 'development' | 'staging' | 'production' | 'testing' : undefined });
   };
 
-  const handlePriorityChange = (selection: string) => {
+  const handlePriorityChange = (event: any, selection: string) => {
     const newPriorities = selectedPriorities.includes(selection)
       ? selectedPriorities.filter(p => p !== selection)
       : [...selectedPriorities, selection];
     
     setSelectedPriorities(newPriorities);
-    updateFilter({ priority: newPriorities.length === 1 ? newPriorities[0] : undefined });
+    updateFilter({ priority: newPriorities.length === 1 ? newPriorities[0] as 'low' | 'medium' | 'high' | 'critical' : undefined });
   };
 
-  const handleTagChange = (selection: string) => {
+  const handleTagChange = (event: any, selection: string) => {
     const newTags = selectedTags.includes(selection)
       ? selectedTags.filter(t => t !== selection)
       : [...selectedTags, selection];
@@ -234,19 +228,16 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
   return (
     <div className="secret-filters">
       <ExpandableSection
-        toggleText={
-          <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapSm' }}>
-            <FilterIcon />
-                         <h4>Filters</h4>
-            {activeFilterCount > 0 && (
-              <Badge variant="read">{activeFilterCount}</Badge>
-            )}
-          </Flex>
-        }
+        toggleText="Filters"
         isExpanded={isExpanded}
         onToggle={() => setIsExpanded(!isExpanded)}
         className="pf-v5-u-mb-md"
       >
+        {activeFilterCount > 0 && (
+          <div className="pf-v5-u-mb-sm">
+            <Badge isRead>{activeFilterCount} active filters</Badge>
+          </div>
+        )}
         <div className="pf-v5-u-p-md">
           {/* Search and Basic Filters */}
           <Grid hasGutter>
@@ -257,58 +248,49 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search secret names and descriptions..."
-                  iconVariant="search"
                 />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Provider">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedProviders}
-                   onSelect={(event, selection) => handleProviderChange(selection as string)}
-                   placeholderText="Select providers"
-                 >
-                  {providers.map(provider => (
-                    <SelectOption key={provider.id} value={provider.id}>
-                      {provider.name} ({provider.type})
-                    </SelectOption>
-                  ))}
-                </Select>
+                <CustomSelect
+                  variant="typeahead"
+                  selections={selectedProviders}
+                  onSelect={(event, selection) => handleProviderChange(event, selection)}
+                  options={providers.map(provider => ({
+                    value: provider.id,
+                    label: `${provider.name} (${provider.type})`
+                  }))}
+                  placeholder="Select providers"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Namespace">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedNamespaces}
-                   onSelect={(event, selection) => handleNamespaceChange(selection as string)}
-                   placeholderText="Select namespaces"
-
-                 >
-                  {namespaces.map(namespace => (
-                    <SelectOption key={namespace} value={namespace}>
-                      {namespace}
-                    </SelectOption>
-                  ))}
-                </Select>
+                <CustomSelect
+                  variant="typeahead"
+                  selections={selectedNamespaces}
+                  onSelect={(event, selection) => handleNamespaceChange(event, selection)}
+                  options={namespaces.map(namespace => ({
+                    value: namespace,
+                    label: namespace
+                  }))}
+                  placeholder="Select namespaces"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Project">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedProjects}
-                   onSelect={(event, selection) => handleProjectChange(selection as string)}
-                   placeholderText="Select projects"
-
-                 >
-                  {projects.map(project => (
-                    <SelectOption key={project} value={project}>
-                      {project}
-                    </SelectOption>
-                  ))}
-                </Select>
+                <CustomSelect
+                  variant="typeahead"
+                  selections={selectedProjects}
+                  onSelect={(event, selection) => handleProjectChange(event, selection)}
+                  options={projects.map(project => ({
+                    value: project,
+                    label: project
+                  }))}
+                  placeholder="Select projects"
+                />
               </FormGroup>
             </GridItem>
           </Grid>
@@ -324,102 +306,96 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
           <Grid hasGutter>
             <GridItem span={6}>
               <FormGroup label="Category">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedCategories}
-                   onSelect={(event, selection) => handleCategoryChange(selection as string)}
-                   placeholderText="Select categories"
-
-                 >
-                  {categories.map(category => (
-                    <SelectOption key={category} value={category}>
-                      {category}
-                    </SelectOption>
-                  ))}
-                </Select>
+                <CustomSelect
+                  variant="checkbox"
+                  selections={selectedCategories}
+                  onSelect={(event, selection) => handleCategoryChange(event, selection)}
+                  options={categories.map(category => ({
+                    value: category,
+                    label: category
+                  }))}
+                  placeholder="Select categories"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Team">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedTeams}
-                   onSelect={(event, selection) => handleTeamChange(selection as string)}
-                   placeholderText="Select teams"
-
-                 >
-                  {teams.map(team => (
-                    <SelectOption key={team} value={team}>
-                      {team}
-                    </SelectOption>
-                  ))}
-                </Select>
+                <CustomSelect
+                  variant="checkbox"
+                  selections={selectedTeams}
+                  onSelect={(event, selection) => handleTeamChange(event, selection)}
+                  options={teams.map(team => ({
+                    value: team,
+                    label: team
+                  }))}
+                  placeholder="Select teams"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Classification">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedClassifications}
-                   onSelect={(event, selection) => handleClassificationChange(selection as string)}
-                   placeholderText="Select classifications"
-
-                 >
-                  <SelectOption value="public">Public</SelectOption>
-                  <SelectOption value="internal">Internal</SelectOption>
-                  <SelectOption value="confidential">Confidential</SelectOption>
-                  <SelectOption value="restricted">Restricted</SelectOption>
-                  <SelectOption value="secret">Secret</SelectOption>
-                </Select>
+                <CustomSelect
+                  variant="checkbox"
+                  selections={selectedClassifications}
+                  onSelect={(event, selection) => handleClassificationChange(event, selection)}
+                  options={[
+                    { value: "public", label: "Public" },
+                    { value: "internal", label: "Internal" },
+                    { value: "confidential", label: "Confidential" },
+                    { value: "restricted", label: "Restricted" },
+                    { value: "secret", label: "Secret" }
+                  ]}
+                  placeholder="Select classifications"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Environment">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedEnvironments}
-                   onSelect={(event, selection) => handleEnvironmentChange(selection as string)}
-                   placeholderText="Select environments"
-
-                 >
-                  <SelectOption value="development">Development</SelectOption>
-                  <SelectOption value="staging">Staging</SelectOption>
-                  <SelectOption value="production">Production</SelectOption>
-                  <SelectOption value="testing">Testing</SelectOption>
-                </Select>
+                <CustomSelect
+                  variant="checkbox"
+                  selections={selectedEnvironments}
+                  onSelect={(event, selection) => handleEnvironmentChange(event, selection)}
+                  options={[
+                    { value: "development", label: "Development" },
+                    { value: "staging", label: "Staging" },
+                    { value: "production", label: "Production" },
+                    { value: "testing", label: "Testing" }
+                  ]}
+                  placeholder="Select environments"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Priority">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedPriorities}
-                   onSelect={(event, selection) => handlePriorityChange(selection as string)}
-                   placeholderText="Select priorities"
-
-                 >
-                  <SelectOption value="low">Low</SelectOption>
-                  <SelectOption value="medium">Medium</SelectOption>
-                  <SelectOption value="high">High</SelectOption>
-                  <SelectOption value="critical">Critical</SelectOption>
-                </Select>
+                <CustomSelect
+                  variant="checkbox"
+                  selections={selectedPriorities}
+                  onSelect={(event, selection) => handlePriorityChange(event, selection)}
+                  options={[
+                    { value: "low", label: "Low" },
+                    { value: "medium", label: "Medium" },
+                    { value: "high", label: "High" },
+                    { value: "critical", label: "Critical" }
+                  ]}
+                  placeholder="Select priorities"
+                />
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Tags">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedTags}
-                   onSelect={(event, selection) => handleTagChange(selection as string)}
-                   placeholderText="Select tags"
-
-                 >
-                  <SelectOption value="database">Database</SelectOption>
-                  <SelectOption value="api">API</SelectOption>
-                  <SelectOption value="credentials">Credentials</SelectOption>
-                  <SelectOption value="certificates">Certificates</SelectOption>
-                  <SelectOption value="keys">Keys</SelectOption>
-                </Select>
+                <CustomSelect
+                  variant="checkbox"
+                  selections={selectedTags}
+                  onSelect={(event, selection) => handleTagChange(event, selection)}
+                  options={[
+                    { value: "database", label: "Database" },
+                    { value: "api", label: "API" },
+                    { value: "credentials", label: "Credentials" },
+                    { value: "certificates", label: "Certificates" },
+                    { value: "keys", label: "Keys" }
+                  ]}
+                  placeholder="Select tags"
+                />
               </FormGroup>
             </GridItem>
           </Grid>
