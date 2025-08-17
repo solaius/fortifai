@@ -253,6 +253,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
             <GridItem span={6}>
               <FormGroup label="Search">
                 <TextInput
+                  id="search-input"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search secret names and descriptions..."
@@ -283,6 +284,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedNamespaces}
                    onSelect={(event, selection) => handleNamespaceChange(selection as string)}
                    placeholderText="Select namespaces"
+
                  >
                   {namespaces.map(namespace => (
                     <SelectOption key={namespace} value={namespace}>
@@ -299,6 +301,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedProjects}
                    onSelect={(event, selection) => handleProjectChange(selection as string)}
                    placeholderText="Select projects"
+
                  >
                   {projects.map(project => (
                     <SelectOption key={project} value={project}>
@@ -326,6 +329,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedCategories}
                    onSelect={(event, selection) => handleCategoryChange(selection as string)}
                    placeholderText="Select categories"
+
                  >
                   {categories.map(category => (
                     <SelectOption key={category} value={category}>
@@ -342,6 +346,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedTeams}
                    onSelect={(event, selection) => handleTeamChange(selection as string)}
                    placeholderText="Select teams"
+
                  >
                   {teams.map(team => (
                     <SelectOption key={team} value={team}>
@@ -358,6 +363,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedClassifications}
                    onSelect={(event, selection) => handleClassificationChange(selection as string)}
                    placeholderText="Select classifications"
+
                  >
                   <SelectOption value="public">Public</SelectOption>
                   <SelectOption value="internal">Internal</SelectOption>
@@ -374,6 +380,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedEnvironments}
                    onSelect={(event, selection) => handleEnvironmentChange(selection as string)}
                    placeholderText="Select environments"
+
                  >
                   <SelectOption value="development">Development</SelectOption>
                   <SelectOption value="staging">Staging</SelectOption>
@@ -389,6 +396,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedPriorities}
                    onSelect={(event, selection) => handlePriorityChange(selection as string)}
                    placeholderText="Select priorities"
+
                  >
                   <SelectOption value="low">Low</SelectOption>
                   <SelectOption value="medium">Medium</SelectOption>
@@ -404,6 +412,7 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                    selections={selectedTags}
                    onSelect={(event, selection) => handleTagChange(selection as string)}
                    placeholderText="Select tags"
+
                  >
                   <SelectOption value="database">Database</SelectOption>
                   <SelectOption value="api">API</SelectOption>
