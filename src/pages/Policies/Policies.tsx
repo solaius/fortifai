@@ -15,8 +15,6 @@ import {
   Alert,
   AlertVariant,
   SearchInput,
-  Select,
-  SelectOption,
   Toolbar,
   ToolbarContent,
   ToolbarItem,
@@ -29,6 +27,7 @@ import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import UserIcon from '@patternfly/react-icons/dist/esm/icons/user-icon';
 import ServerIcon from '@patternfly/react-icons/dist/esm/icons/server-icon';
 import DatabaseIcon from '@patternfly/react-icons/dist/esm/icons/database-icon';
+import CustomSelect from '../../components/Common/CustomSelect';
 
 interface Policy {
   id: string;
@@ -242,38 +241,28 @@ const Policies: React.FC = () => {
               />
             </ToolbarItem>
             <ToolbarItem>
-              <Select
-                isOpen={isEffectFilterOpen}
-                onToggle={() => setIsEffectFilterOpen(!isEffectFilterOpen)}
+              <CustomSelect
+                variant="single"
                 selections={effectFilter}
                 onSelect={(event, selection) => {
                   setEffectFilter(selection as string);
                   setIsEffectFilterOpen(false);
                 }}
-              >
-                {effectOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
+                options={effectOptions}
+                placeholder="Filter by effect"
+              />
             </ToolbarItem>
             <ToolbarItem>
-              <Select
-                isOpen={isStatusFilterOpen}
-                onToggle={() => setIsStatusFilterOpen(!isStatusFilterOpen)}
+              <CustomSelect
+                variant="single"
                 selections={statusFilter}
                 onSelect={(event, selection) => {
                   setStatusFilter(selection as string);
                   setIsStatusFilterOpen(false);
                 }}
-              >
-                {statusOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
+                options={statusOptions}
+                placeholder="Filter by status"
+              />
             </ToolbarItem>
           </ToolbarGroup>
           <ToolbarGroup>
