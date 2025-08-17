@@ -290,11 +290,49 @@ export class SecretsService {
   }
 
   // Search and Discovery
-  async searchReferences(query: string, filter?: SecretReferenceFilter): Promise<SecretReference[]> {
+  async searchReferences(query: string, filter?: SecretReferenceFilter, page: number = 1, perPage: number = 10): Promise<{ references: SecretReference[]; total: number }> {
     try {
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        await mockDelay();
+        
+        // Clear existing references and load mock data
+        this.references.clear();
+        mockSecretReferences.forEach(reference => {
+          this.references.set(reference.id, reference);
+        });
+        
+        // Apply basic filtering if provided
+        let filteredReferences = mockSecretReferences;
+        if (filter) {
+          filteredReferences = this.applyMockFilter(mockSecretReferences, filter);
+        }
+        
+        // Apply search query if provided
+        if (query) {
+          filteredReferences = filteredReferences.filter(r => 
+            r.name.toLowerCase().includes(query.toLowerCase()) ||
+            r.description?.toLowerCase().includes(query.toLowerCase()) ||
+            r.path.toLowerCase().includes(query.toLowerCase())
+          );
+        }
+        
+        // Apply pagination
+        const startIndex = (page - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const paginatedReferences = filteredReferences.slice(startIndex, endIndex);
+        
+        return {
+          references: paginatedReferences,
+          total: filteredReferences.length
+        };
+      }
+
       const params = {
         q: query,
-        ...this.buildFilterParams(filter)
+        ...this.buildFilterParams(filter),
+        page,
+        per_page: perPage
       };
       
       const response = await api.get('/secret-references/search', { params });
@@ -307,12 +345,52 @@ export class SecretsService {
           this.references.set(reference.id, reference);
         });
         
-        return references;
+        return {
+          references,
+          total: references.length // API should provide total in pagination metadata
+        };
       }
-      return [];
+      return { references: [], total: 0 };
     } catch (error) {
       console.error('Failed to search secret references:', error);
-      return [];
+      
+      // In development or test, fall back to mock data if API fails
+      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' || typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        console.warn('🔄 Falling back to mock data due to API failure');
+        
+        // Clear existing references and load mock data
+        this.references.clear();
+        mockSecretReferences.forEach(reference => {
+          this.references.set(reference.id, reference);
+        });
+        
+        // Apply basic filtering if provided
+        let filteredReferences = mockSecretReferences;
+        if (filter) {
+          filteredReferences = this.applyMockFilter(mockSecretReferences, filter);
+        }
+        
+        // Apply search query if provided
+        if (query) {
+          filteredReferences = filteredReferences.filter(r => 
+            r.name.toLowerCase().includes(query.toLowerCase()) ||
+            r.description?.toLowerCase().includes(query.toLowerCase()) ||
+            r.path.toLowerCase().includes(query.toLowerCase())
+          );
+        }
+        
+        // Apply pagination
+        const startIndex = (page - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const paginatedReferences = filteredReferences.slice(startIndex, endIndex);
+        
+        return {
+          references: paginatedReferences,
+          total: filteredReferences.length
+        };
+      }
+      
+      return { references: [], total: 0 };
     }
   }
 

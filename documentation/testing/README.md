@@ -13,8 +13,8 @@ The FortifAI project uses **Jest** as the primary testing framework with **TypeS
 
 ## 📊 Current Status
 
-- **Total Test Suites**: 9
-- **Passing**: 9 ✅
+- **Total Test Suites**: 12
+- **Passing**: 12 ✅
 - **Failing**: 0 ❌
 - **Success Rate**: 100% 🎉
 
@@ -27,6 +27,9 @@ The FortifAI project uses **Jest** as the primary testing framework with **TypeS
 | `mockData.test.ts` | ✅ Passing | Mock data utilities and validation |
 | `providers.test.ts` | ✅ Passing | Provider management service |
 | `secrets.test.ts` | ✅ Passing | Secret reference management service |
+| `rhai.test.ts` | ✅ Passing | **RHAI Core functionality and MCP server AI workload management** |
+| `openshift-ai.test.ts` | ✅ Passing | **OpenShift AI integration patterns and enterprise workflows** |
+| `enterprise-ai.test.ts` | ✅ Passing | **Enterprise AI workflow patterns, MLOps, and team collaboration** |
 
 ## 🏗️ Architecture
 
@@ -38,7 +41,10 @@ src/__tests__/
 │   ├── bindings.test.ts # Bindings service
 │   ├── mockData.test.ts # Mock data utilities
 │   ├── providers.test.ts # Providers service
-│   └── secrets.test.ts  # Secrets service
+│   ├── secrets.test.ts  # Secrets service
+│   ├── rhai.test.ts     # **RHAI Core functionality and AI workloads**
+│   ├── openshift-ai.test.ts # **OpenShift AI integration patterns**
+│   └── enterprise-ai.test.ts # **Enterprise AI workflow patterns**
 └── __mocks__/         # Global mocks
     ├── svgMock.cjs    # SVG file mocks
     └── iconMock.cjs   # Icon component mocks
@@ -124,7 +130,7 @@ npm test -- --testNamePattern="should create binding"
 ```bash
 npm test
 ```
-- Runs all 9 test suites
+- Runs all 12 test suites
 - Provides summary of results
 - Shows coverage information
 
@@ -147,6 +153,24 @@ npm test -- --testPathPattern="services/.*\.test\.ts$"
 
 # Test specific functionality
 npm test -- --testNamePattern="create|update|delete"
+```
+
+#### 4. RHAI-Specific Testing
+```bash
+# Test all RHAI-specific functionality
+npm test -- --testPathPattern="rhai|openshift|enterprise"
+
+# Test only RHAI core functionality
+npm test -- --testPathPattern="rhai.test.ts"
+
+# Test only OpenShift AI integration
+npm test -- --testPathPattern="openshift-ai.test.ts"
+
+# Test only Enterprise AI workflows
+npm test -- --testPathPattern="enterprise-ai.test.ts"
+
+# Run all RHAI tests with verbose output
+npx jest src/__tests__/services/rhai.test.ts src/__tests__/services/openshift-ai.test.ts src/__tests__/services/enterprise-ai.test.ts --verbose
 ```
 
 ## 🔧 Mock Data Strategy
@@ -180,6 +204,88 @@ if (process.env.NODE_ENV === 'development') {
 ```
 
 ## 🚀 Service Testing Patterns
+
+## 🤖 RHAI-Specific Testing
+
+The FortifAI project includes comprehensive testing for Red Hat AI (RHAI) specific functionality that goes beyond basic service layer testing. These tests cover enterprise AI patterns, OpenShift AI integration, and MCP server AI workload management.
+
+### RHAI Test Coverage
+
+#### 1. **RHAI Core Tests** (`rhai.test.ts`) - 20 Tests
+- **MCP Server AI Workload Management**: AI workload creation, security, monitoring, deployment
+- **AI-Specific Secret Binding Patterns**: API key rotation, database credentials, error handling
+- **Enterprise AI Team Collaboration**: Multi-tenant isolation, cost tracking, ownership, lifecycle
+- **AI Workload Validation and Health**: Configuration integrity, monitoring, error scenarios
+- **AI Workload Security and Compliance**: Security standards, audit trails, resource constraints
+- **AI Workload Integration Patterns**: MCP integration, environment management, scaling
+
+#### 2. **OpenShift AI Tests** (`openshift-ai.test.ts`) - 21 Tests
+- **OpenShift AI Project Management**: Project isolation, cost tracking, team ownership
+- **OpenShift AI Namespace Management**: Resource quotas, network policies, service accounts
+- **OpenShift AI OAuth Integration**: OAuth configuration, AI-specific scopes, security
+- **OpenShift AI Multi-Tenancy**: Team isolation, access control
+- **OpenShift AI Security and Compliance**: Security standards, audit trails, resource constraints
+- **OpenShift AI Integration Patterns**: Deployment, monitoring, secret management
+- **OpenShift AI Operational Patterns**: Scaling, backup, disaster recovery
+
+#### 3. **Enterprise AI Tests** (`enterprise-ai.test.ts`) - 17 Tests
+- **MLOps Production Workflows**: Pipeline management, secret rotation, monitoring, approval
+- **AI Research Workflows**: Experimentation, secret policies, environment flexibility
+- **Enterprise AI Team Collaboration**: Team structure, access control, project management
+- **Enterprise AI Security and Compliance**: Security standards, audit compliance, resource validation
+- **Enterprise AI Operational Excellence**: Automation, collaboration, workflow optimization
+
+### RHAI Testing Strategy
+
+#### Mock Data for AI Workloads
+```typescript
+// Realistic AI workload mock data
+const mockAIWorkload: MCPServerBinding = {
+  id: 'ai-mlops-server-01',
+  name: 'MLOps Production Server',
+  environment: 'production',
+  namespace: 'ai-mlops-prod',
+  project: 'mlops-production',
+  secretBindings: [
+    {
+      secretName: 'OpenAI API Key',
+      envVarName: 'OPENAI_API_KEY',
+      refreshInterval: 3600, // 1 hour rotation
+      errorHandling: {
+        strategy: 'fail-fast',
+        notifyOnError: true
+      }
+    }
+  ],
+  runtimeConfig: {
+    deploymentStrategy: 'rolling',
+    replicas: 3,
+    resources: {
+      cpu: { request: '500m', limit: '1000m' },
+      memory: { request: '1Gi', limit: '2Gi' }
+    }
+  }
+};
+```
+
+#### AI-Specific Test Patterns
+```typescript
+describe('AI Workload Security and Compliance', () => {
+  it('should enforce AI workload security standards', async () => {
+    const aiWorkloads = [mockAIWorkload, mockAINotebook];
+    
+    aiWorkloads.forEach(workload => {
+      // All AI workloads should run as non-root
+      expect(workload.runtimeConfig.securityContext?.runAsNonRoot).toBe(true);
+      expect(workload.runtimeConfig.securityContext?.runAsUser).toBe(1000);
+      
+      // All AI workloads should have resource limits
+      expect(workload.runtimeConfig.resources?.cpu.limit).toBeDefined();
+      expect(workload.runtimeConfig.resources?.memory.limit).toBeDefined();
+    });
+  });
+});
+```
 
 ### 1. Bindings Service (`bindings.test.ts`)
 
@@ -303,6 +409,11 @@ jest.mock('../../services/providers', () => ({
 2. **Keep Tests Simple**: Each test should focus on one behavior
 3. **Use Descriptive Names**: Test names should clearly describe what's being tested
 4. **Mock External Dependencies**: Never let tests make real API calls
+
+## 📚 Additional Resources
+
+### RHAI-Specific Testing
+- **[RHAI-Specific Unit Tests Implementation](./rhai-unit-tests-implementation.md)** - Comprehensive guide to RHAI testing implementation
 
 ---
 
