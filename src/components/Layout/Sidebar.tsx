@@ -53,8 +53,8 @@ export const Sidebar: React.FC = () => {
 
         <NavExpandable 
           title="Access Control" 
-          isExpanded={isActive('/bindings') || isActive('/policies')}
-          isActive={isActive('/bindings') || isActive('/policies')}
+          isExpanded={isActive('/bindings') || isActive('/policies') || isActive('/rbac')}
+          isActive={isActive('/bindings') || isActive('/policies') || isActive('/rbac')}
         >
           <NavItem isActive={isActive('/bindings')}>
             <NavLink to="/bindings">
@@ -64,6 +64,11 @@ export const Sidebar: React.FC = () => {
           <NavItem isActive={isActive('/policies')}>
             <NavLink to="/policies">
               <ShieldAltIcon /> Access Policies
+            </NavLink>
+          </NavItem>
+          <NavItem isActive={isActive('/rbac')}>
+            <NavLink to="/rbac">
+              <ShieldAltIcon /> RBAC Dashboard
             </NavLink>
           </NavItem>
         </NavExpandable>

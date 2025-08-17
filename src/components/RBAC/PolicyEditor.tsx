@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
   CardBody,
-  CardActions,
+  CardFooter,
   Form,
   FormGroup,
   FormSection,
@@ -715,7 +715,7 @@ const PolicyEditor: React.FC<PolicyEditorProps> = ({
           )}
         </Form>
       </CardBody>
-      <CardActions>
+      <CardFooter>
         <Button
           variant={ButtonVariant.primary}
           onClick={handleSubmit}
@@ -727,7 +727,7 @@ const PolicyEditor: React.FC<PolicyEditorProps> = ({
         <Button variant={ButtonVariant.secondary} onClick={onCancel}>
           Cancel
         </Button>
-      </CardActions>
+      </CardFooter>
     </Card>
   );
 };

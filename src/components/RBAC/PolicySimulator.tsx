@@ -1,91 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardBody,
-  CardActions,
-  Button,
-  ButtonVariant,
-  Grid,
-  GridItem,
-  Flex,
-  FlexItem,
-  TextInput,
-  TextArea,
-  Select,
-  SelectOption,
-  SelectVariant,
-  Chip,
-  ChipGroup,
-  Badge,
-  Alert,
-  AlertVariant,
-  Table,
-  TableHeader,
-  TableBody,
-  TableVariant,
-  Th,
-  Td,
-  Tr,
-  ActionsColumn,
-  IAction,
-  Tooltip,
-  TooltipPosition,
-  Icon,
-  Popover,
-  PopoverPosition,
-  PopoverContent,
-  PopoverBody,
-  PopoverHeader,
-  PopoverTrigger,
-  Modal,
-  ModalVariant,
-  Form,
-  FormGroup,
-  FormSection,
-  Divider,
-  Tabs,
-  Tab,
-  TabTitle,
-  TabContent,
-  EmptyState,
-  EmptyStateIcon,
-  EmptyStateBody,
-  EmptyStateActions,
-  Spinner,
-  Bullseye,
-  Progress,
-  ProgressSize,
-  ProgressVariant,
-  List,
-  ListItem,
-  DescriptionList,
-  DescriptionListDescription,
-  DescriptionListGroup,
-  DescriptionListTerm
+  Card, CardHeader, CardTitle, CardBody, CardFooter, Button, ButtonVariant, Grid, GridItem,
+  Flex, FlexItem, TextInput, TextArea, Select, SelectOption, ButtonVariant as SelectVariant, Badge,
+  Alert, AlertVariant, Icon, Modal, ModalVariant, Form, FormGroup, FormSection, Divider,
+  Tabs, Tab, TabTitle, TabContent, EmptyState, EmptyStateIcon, EmptyStateBody, EmptyStateActions,
+  DescriptionList, DescriptionListDescription, DescriptionListGroup, DescriptionListTerm
 } from '@patternfly/react-core';
 import {
-  PlayIcon,
-  StopIcon,
-  PlusIcon,
-  TrashIcon,
-  EyeIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  TimesCircleIcon,
-  QuestionCircleIcon,
-  FilterIcon,
-  DownloadIcon,
-  UploadIcon,
-  SearchIcon,
-  TableIcon,
-  ThumbtackIcon,
-  ClockIcon,
-  UserIcon,
-  ServerIcon,
-  DatabaseIcon
-} from '@patternfly/react-icons';
+  Table, TableHeader, TableBody, TableVariant, Th, Td, Tr, ActionsColumn, IAction
+} from '@patternfly/react-table';
+import { PlusIcon, TrashIcon, EyeIcon, PlayIcon } from '@patternfly/react-icons';
 import { 
   Policy, 
   PolicyEvaluationRequest, 
@@ -929,7 +853,7 @@ const PolicySimulator: React.FC<PolicySimulatorProps> = ({
             </Tab>
           </Tabs>
         </CardBody>
-        <CardActions>
+        <CardFooter>
           <Button
             variant={ButtonVariant.primary}
             onClick={() => setState(prev => ({ ...prev, showCreateModal: true }))}
@@ -953,7 +877,7 @@ const PolicySimulator: React.FC<PolicySimulatorProps> = ({
           >
             Run Simulation
           </Button>
-        </CardActions>
+        </CardFooter>
       </Card>
 
       {/* Create Test Case Modal */}

@@ -53,6 +53,9 @@ const breadcrumbMap: Record<string, Array<{ path: string; label: string }>> = {
     { path: '/policies', label: 'Access Policies' },
     { path: '/policies/new', label: 'Create Policy' }
   ],
+  '/rbac': [
+    { path: '/rbac', label: 'RBAC Dashboard' }
+  ],
   '/audit': [
     { path: '/audit', label: 'Audit Log' }
   ],

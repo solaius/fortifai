@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
   CardBody,
-  CardActions,
+  CardFooter,
   Button,
   ButtonVariant,
   Grid,
@@ -493,7 +493,7 @@ const RoleManager: React.FC<RoleManagerProps> = ({
             </TableBody>
           </Table>
         </CardBody>
-        <CardActions>
+        <CardFooter>
           <Button
             variant={ButtonVariant.primary}
             onClick={handleOpenCreateModal}
@@ -501,7 +501,7 @@ const RoleManager: React.FC<RoleManagerProps> = ({
           >
             Create Role
           </Button>
-        </CardActions>
+        </CardFooter>
       </Card>
 
       {/* Create Role Modal */}

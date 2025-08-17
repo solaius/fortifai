@@ -1,59 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardBody,
-  CardActions,
-  Button,
-  ButtonVariant,
-  Grid,
-  GridItem,
-  Flex,
-  FlexItem,
-  TextInput,
-  Select,
-  SelectOption,
-  SelectVariant,
-  Chip,
-  ChipGroup,
-  Badge,
-  Alert,
-  AlertVariant,
-  Table,
-  TableHeader,
-  TableBody,
-  TableVariant,
-  Th,
-  Td,
-  Tr,
-  ActionsColumn,
-  IAction,
-  Tooltip,
-  TooltipPosition,
-  Icon,
-  Popover,
-  PopoverPosition,
-  PopoverContent,
-  PopoverBody,
-  PopoverHeader,
-  PopoverTrigger,
-  Modal,
-  ModalVariant,
-  Form,
-  FormGroup,
-  FormSection,
-  Divider,
-  Tabs,
-  Tab,
-  TabTitle,
-  TabContent,
-  EmptyState,
-  EmptyStateIcon,
-  EmptyStateBody,
-  EmptyStateActions,
-  Spinner,
-  Bullseye
+  Card, CardHeader, CardTitle, CardBody, CardFooter, Button, ButtonVariant, Grid, GridItem,
+  Flex, FlexItem, TextInput, Select, SelectOption, SelectVariant, Chip, ChipGroup, Badge,
+  Alert, AlertVariant, Table, TableHeader, TableBody, TableVariant, Th, Td, Tr, ActionsColumn,
+  IAction, Tooltip, Icon, Modal, ModalVariant, Form, FormGroup, Tabs, Tab, TabTitle, EmptyState, EmptyStateIcon, EmptyStateBody, EmptyStateActions
 } from '@patternfly/react-core';
 import {
   PlusIcon,
@@ -630,7 +580,7 @@ const PolicyMatrix: React.FC<PolicyMatrixProps> = ({
             </GridItem>
           </Grid>
         </CardBody>
-        <CardActions>
+        <CardFooter>
           <Button
             variant={ButtonVariant.secondary}
             onClick={() => setIsImportModalOpen(true)}
@@ -645,7 +595,7 @@ const PolicyMatrix: React.FC<PolicyMatrixProps> = ({
           >
             Export
           </Button>
-        </CardActions>
+        </CardFooter>
       </Card>
 
       {/* Conflict Resolution Modal */}

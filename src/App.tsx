@@ -8,6 +8,7 @@ import Bindings from './pages/Bindings';
 import Policies from './pages/Policies';
 import Audit from './pages/Audit';
 import Settings from './pages/Settings';
+import SimpleRBACDashboard from './components/RBAC/SimpleRBACDashboard';
 
 function AppContent() {
   return (
@@ -23,6 +24,7 @@ function AppContent() {
         <Route path="/bindings/new" element={<Bindings />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/policies/new" element={<Policies />} />
+        <Route path="/rbac" element={<SimpleRBACDashboard />} />
         <Route path="/audit" element={<Audit />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
