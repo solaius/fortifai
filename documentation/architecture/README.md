@@ -20,6 +20,10 @@ FortifAI is a modern web application built with React, TypeScript, and Vite, des
 ├─────────────────────────────────────────────────────────────────┤
 │  BindingsService  │  ProvidersService  │  SecretsService      │
 ├─────────────────────────────────────────────────────────────────┤
+│                    RBAC Services                                │
+├─────────────────────────────────────────────────────────────────┤
+│  RBACService  │  PolicyEngineService  │  PolicyVersioningService │
+├─────────────────────────────────────────────────────────────────┤
 │                      Mock Data Layer                           │
 ├─────────────────────────────────────────────────────────────────┤
 │  Mock Data  │  Mock Services  │  Test Utilities              │
@@ -72,6 +76,9 @@ Contains the core business logic services:
 - **`bindings.ts`**: MCP server binding management
 - **`providers.ts`**: Secrets provider management
 - **`secrets.ts`**: Secret reference management
+- **`rbac.ts`**: Role-based access control management
+- **`policyEngine.ts`**: Policy evaluation and decision making
+- **`policyVersioning.ts`**: Policy versioning and audit trails
 - **`api.ts`**: API utility functions
 - **`mockData.ts`**: Mock data and utilities
 
@@ -80,6 +87,7 @@ TypeScript interface definitions:
 - **`bindings.ts`**: Binding-related types
 - **`secrets.ts`**: Secret-related types
 - **`providers.ts`**: Provider-related types
+- **`rbac.ts`**: RBAC and policy-related types
 - **`api.ts`**: API response types
 
 #### `src/__tests__/`
@@ -169,6 +177,7 @@ src/__tests__/
 │   ├── bindings.test.ts        # Bindings service tests
 │   ├── mockData.test.ts        # Mock data tests
 │   ├── providers.test.ts       # Providers service tests
+│   ├── rbac.test.ts            # RBAC service tests
 │   └── secrets.test.ts         # Secrets service tests
 └── __mocks__/                   # Global mocks
     ├── svgMock.cjs             # SVG file mocks
@@ -210,6 +219,61 @@ module.exports = {
   },
 };
 ```
+
+## 🔐 RBAC Architecture
+
+### RBAC System Components
+
+The RBAC system provides comprehensive access control through three core services:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        RBAC Layer                              │
+├─────────────────────────────────────────────────────────────────┤
+│  RBACService  │  PolicyEngineService  │  PolicyVersioningService │
+├─────────────────────────────────────────────────────────────────┤
+│                    Policy Evaluation                            │
+├─────────────────────────────────────────────────────────────────┤
+│  Policy Rules  │  Policy Targets  │  Policy Conditions        │
+├─────────────────────────────────────────────────────────────────┤
+│                    Access Control                              │
+├─────────────────────────────────────────────────────────────────┤
+│  Role Checks  │  Permission Validation  │  Policy Enforcement   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Service Responsibilities
+
+#### RBACService
+- **Role Management**: CRUD operations for user roles
+- **Permission Management**: Granular permission definitions
+- **Policy Management**: Access policy definitions
+- **Utility Methods**: Role checking and filtering
+
+#### PolicyEngineService
+- **Policy Evaluation**: Deterministic access decisions
+- **Conflict Resolution**: Priority-based policy resolution
+- **Caching**: Performance optimization through result caching
+- **Simulation**: Policy testing before deployment
+
+#### PolicyVersioningService
+- **Version Control**: Complete policy change history
+- **Audit Trail**: Immutable change records
+- **Rollback Support**: Version restoration capabilities
+- **Change Tracking**: Detailed change analysis
+
+### Policy Evaluation Flow
+
+```
+Access Request → Policy Collection → Rule Evaluation → Condition Checking → Decision Making → Result Caching
+```
+
+### Security Features
+
+- **Principle of Least Privilege**: Minimum necessary permissions
+- **Policy Validation**: Automatic conflict detection
+- **Immutable Audit Logs**: Complete change history
+- **Risk Assessment**: Built-in security analysis
 
 ## 🔄 Data Flow
 

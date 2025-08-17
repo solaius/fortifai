@@ -10,13 +10,17 @@ The FortifAI API provides a comprehensive interface for managing MCP server bind
 
 ### Service Layer
 
-The API is organized into three main service areas:
+The API is organized into four main service areas:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        API Layer                                │
 ├─────────────────────────────────────────────────────────────────┤
 │  BindingsService  │  ProvidersService  │  SecretsService      │
+├─────────────────────────────────────────────────────────────────┤
+│                    RBAC Services                                │
+├─────────────────────────────────────────────────────────────────┤
+│  RBACService  │  PolicyEngineService  │  PolicyVersioningService │
 ├─────────────────────────────────────────────────────────────────┤
 │                    Mock Data Layer                              │
 ├─────────────────────────────────────────────────────────────────┤
@@ -348,6 +352,67 @@ const vaultProvider = await providersService.createProvider({
     environment: 'production',
     region: 'us-east-1',
     version: '1.12.0'
+  }
+});
+```
+
+## 🔐 RBAC (Role-Based Access Control) API
+
+### Overview
+
+The RBAC system provides comprehensive role-based access control for secrets management, including role management, permission handling, policy evaluation, and versioning capabilities.
+
+### Core Services
+
+- **`RBACService`**: Manages roles, permissions, and policies
+- **`PolicyEngineService`**: Evaluates policies and makes access decisions
+- **`PolicyVersioningService`**: Handles policy versioning and audit trails
+
+### Quick Start
+
+```typescript
+import { rbacService } from '../services/rbac';
+import { policyEngineService } from '../services/policyEngine';
+import { policyVersioningService } from '../services/policyVersioning';
+
+// Check user permissions
+const userRoles = ['org-admin', 'project-admin'];
+if (rbacService.hasRole(userRoles, 'org-admin')) {
+  // User has org-admin role
+}
+
+// Evaluate access policy
+const result = await policyEngineService.evaluatePolicy(request);
+
+// Create policy with versioning
+const { policy, version } = await policyVersioningService.createPolicyWithVersioning(
+  policyData,
+  'Initial creation'
+);
+```
+
+### Documentation
+
+For comprehensive RBAC documentation, see [RBAC API Reference](./rbac.md).
+
+**Key Features:**
+- **Role Management**: Create, update, and manage user roles
+- **Permission System**: Granular permissions for resources and actions
+- **Policy Engine**: Deterministic policy evaluation with conflict resolution
+- **Policy Versioning**: Complete audit trail and version management
+- **Policy Simulation**: Test policies before deployment
+
+**Example:**
+```typescript
+const newRole = await rbacService.createRole({
+  name: 'ml-engineer',
+  displayName: 'ML Engineer',
+  description: 'Specialized role for machine learning workloads',
+  permissions: ['perm-secrets-read', 'perm-bindings-read'],
+  metadata: {
+    category: 'specialized',
+    priority: 600,
+    tags: ['ml', 'ai', 'engineer']
   }
 });
 ```

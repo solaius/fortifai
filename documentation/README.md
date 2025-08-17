@@ -17,10 +17,12 @@ Welcome to the comprehensive documentation for the FortifAI project. This docume
 ### 🚀 Getting Started
 - **[Development Setup](./getting-started/development-setup.md)** - How to set up the development environment
 - **[Running Tests](./getting-started/running-tests.md)** - Quick start guide for testing
+- **[RBAC Quick Start](./getting-started/rbac-quickstart.md)** - Quick start guide for RBAC system
 - **[Common Issues](./getting-started/common-issues.md)** - Solutions to frequently encountered problems
 
 ### 📖 API Reference
 - **[API Documentation](./api/README.md)** - Complete API reference and examples
+- **[RBAC API Reference](./api/rbac.md)** - Complete RBAC system documentation
 - **[Service APIs](./api/services.md)** - Service method documentation
 
 ## 🎯 Quick Start

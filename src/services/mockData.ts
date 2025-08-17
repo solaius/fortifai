@@ -2,6 +2,7 @@
 import { Provider, VaultProvider, AWSProvider, AzureProvider } from '../types/providers';
 import { SecretReference, RotationPolicy, Permission } from '../types/secrets';
 import { MCPServerBinding } from '../types/bindings';
+import { Role, Permission as RBACPermission, Policy } from '../types/rbac';
 
 // Mock providers data
 export const mockProviders: Provider[] = [
@@ -594,6 +595,433 @@ export const mockBindings: MCPServerBinding[] = [
   }
 ];
 
+// ============================================================================
+// MOCK RBAC DATA
+// ============================================================================
+
+// Mock RBAC permissions
+export const mockPermissions: RBACPermission[] = [
+  {
+    id: 'perm-providers-read',
+    name: 'providers:read',
+    displayName: 'Read Providers',
+    description: 'Can view provider configurations and status',
+    resource: 'providers',
+    action: 'read',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'provider',
+      priority: 100,
+      tags: ['provider', 'read'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-providers-write',
+    name: 'providers:write',
+    displayName: 'Write Providers',
+    description: 'Can create, update, and delete provider configurations',
+    resource: 'providers',
+    action: 'write',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'provider',
+      priority: 200,
+      tags: ['provider', 'write'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-secrets-read',
+    name: 'secrets:read',
+    displayName: 'Read Secrets',
+    description: 'Can view secret references and metadata',
+    resource: 'secrets',
+    action: 'read',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'secret',
+      priority: 100,
+      tags: ['secret', 'read'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-secrets-write',
+    name: 'secrets:write',
+    displayName: 'Write Secrets',
+    description: 'Can create, update, and delete secret references',
+    resource: 'secrets',
+    action: 'write',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'secret',
+      priority: 200,
+      tags: ['secret', 'write'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-bindings-read',
+    name: 'bindings:read',
+    displayName: 'Read Bindings',
+    description: 'Can view MCP server bindings and configurations',
+    resource: 'bindings',
+    action: 'read',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'binding',
+      priority: 100,
+      tags: ['binding', 'read'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-bindings-write',
+    name: 'bindings:write',
+    displayName: 'Write Bindings',
+    description: 'Can create, update, and delete MCP server bindings',
+    resource: 'bindings',
+    action: 'write',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'binding',
+      priority: 200,
+      tags: ['binding', 'write'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-policies-read',
+    name: 'policies:read',
+    displayName: 'Read Policies',
+    description: 'Can view RBAC policies and rules',
+    resource: 'policies',
+    action: 'read',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'policy',
+      priority: 100,
+      tags: ['policy', 'read'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-policies-write',
+    name: 'policies:write',
+    displayName: 'Write Policies',
+    description: 'Can create, update, and delete RBAC policies',
+    resource: 'policies',
+    action: 'write',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'policy',
+      priority: 300,
+      tags: ['policy', 'write'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-audit-read',
+    name: 'audit:read',
+    displayName: 'Read Audit Logs',
+    description: 'Can view audit logs and access history',
+    resource: 'audit',
+    action: 'read',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'audit',
+      priority: 100,
+      tags: ['audit', 'read'],
+      labels: {},
+      annotations: {}
+    }
+  },
+  {
+    id: 'perm-audit-export',
+    name: 'audit:export',
+    displayName: 'Export Audit Logs',
+    description: 'Can export audit logs and reports',
+    resource: 'audit',
+    action: 'export',
+    scope: { type: 'global' },
+    metadata: {
+      category: 'audit',
+      priority: 200,
+      tags: ['audit', 'export'],
+      labels: {},
+      annotations: {}
+    }
+  }
+];
+
+// Mock RBAC roles
+export const mockRoles: Role[] = [
+  {
+    id: 'role-org-admin',
+    name: 'org-admin',
+    displayName: 'Organization Administrator',
+    description: 'Full access to all resources and administrative functions',
+    permissions: [],
+    isSystem: true,
+    isDefault: false,
+    metadata: {
+      category: 'administrative',
+      priority: 1000,
+      tags: ['admin', 'full-access'],
+      labels: { tier: 'admin' },
+      annotations: {}
+    },
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
+    createdBy: 'system'
+  },
+  {
+    id: 'role-project-admin',
+    name: 'project-admin',
+    displayName: 'Project Administrator',
+    description: 'Administrative access to project resources and team management',
+    permissions: [],
+    isSystem: true,
+    isDefault: false,
+    metadata: {
+      category: 'administrative',
+      priority: 800,
+      tags: ['admin', 'project'],
+      labels: { tier: 'project-admin' },
+      annotations: {}
+    },
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
+    createdBy: 'system'
+  },
+  {
+    id: 'role-secret-editor',
+    name: 'secret-editor',
+    displayName: 'Secret Editor',
+    description: 'Can manage secrets and bindings for assigned resources',
+    permissions: [],
+    isSystem: true,
+    isDefault: true,
+    metadata: {
+      category: 'operational',
+      priority: 500,
+      tags: ['secret', 'editor'],
+      labels: { tier: 'editor' },
+      annotations: {}
+    },
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
+    createdBy: 'system'
+  },
+  {
+    id: 'role-secret-viewer',
+    name: 'secret-viewer',
+    displayName: 'Secret Viewer',
+    description: 'Read-only access to secrets and bindings',
+    permissions: [],
+    isSystem: true,
+    isDefault: true,
+    metadata: {
+      category: 'operational',
+      priority: 300,
+      tags: ['secret', 'viewer'],
+      labels: { tier: 'viewer' },
+      annotations: {}
+    },
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date('2024-01-01').toISOString(),
+    createdBy: 'system'
+  },
+  {
+    id: 'role-ml-engineer',
+    name: 'ml-engineer',
+    displayName: 'ML Engineer',
+    description: 'Specialized role for machine learning workloads and AI secrets',
+    permissions: [],
+    isSystem: false,
+    isDefault: false,
+    metadata: {
+      category: 'specialized',
+      priority: 600,
+      tags: ['ml', 'ai', 'engineer'],
+      labels: { tier: 'specialist' },
+      annotations: {}
+    },
+    createdAt: new Date('2024-01-15').toISOString(),
+    updatedAt: new Date('2024-01-15').toISOString(),
+    createdBy: 'admin'
+  }
+];
+
+// Mock RBAC policies
+export const mockPolicies: Policy[] = [
+  {
+    id: 'policy-finance-access',
+    name: 'finance-access',
+    displayName: 'Finance Team Access',
+    description: 'Allow finance team to access financial secrets',
+    effect: 'allow',
+    priority: 100,
+    status: 'active',
+    rules: [
+      {
+        id: 'rule-finance-role',
+        type: 'role',
+        value: ['finance-admin', 'finance-user'],
+        operator: 'in'
+      },
+      {
+        id: 'rule-finance-namespace',
+        type: 'namespace',
+        value: 'finance',
+        operator: 'equals'
+      }
+    ],
+    targets: {
+      resources: ['secrets'],
+      actions: ['read', 'bind'],
+      pathPrefixes: ['kv/data/finance/'],
+      targetTypes: ['mcp-server', 'notebook']
+    },
+    conditions: [],
+    metadata: {
+      category: 'team-access',
+      tags: ['finance', 'allow'],
+      labels: { team: 'finance' },
+      annotations: {},
+      compliance: {
+        standards: ['SOC2'],
+        requirements: ['financial-data-access'],
+        controls: ['access-control'],
+        evidence: []
+      },
+      risk: {
+        level: 'medium',
+        factors: ['financial-data'],
+        mitigation: ['role-based-access', 'audit-logging'],
+        reviewDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    },
+    version: 1,
+    createdAt: new Date('2024-01-15').toISOString(),
+    updatedAt: new Date('2024-01-15').toISOString(),
+    createdBy: 'admin'
+  },
+  {
+    id: 'policy-prod-deny',
+    name: 'production-deny',
+    displayName: 'Production Secrets Deny',
+    description: 'Deny access to production secrets for non-production users',
+    effect: 'deny',
+    priority: 200,
+    status: 'active',
+    rules: [
+      {
+        id: 'rule-non-prod-role',
+        type: 'role',
+        value: ['developer', 'data-scientist'],
+        operator: 'in'
+      },
+      {
+        id: 'rule-prod-path',
+        type: 'resource',
+        value: ['/prod/', '/production/'],
+        operator: 'in'
+      }
+    ],
+    targets: {
+      resources: ['secrets'],
+      actions: ['read', 'bind'],
+      pathPrefixes: ['kv/data/prod/', 'aws/prod/', 'azure/prod/'],
+      targetTypes: ['mcp-server', 'agent', 'notebook', 'job']
+    },
+    conditions: [],
+    metadata: {
+      category: 'security',
+      tags: ['production', 'deny', 'security'],
+      labels: { environment: 'production' },
+      annotations: {},
+      compliance: {
+        standards: ['SOC2', 'ISO27001'],
+        requirements: ['production-access-control'],
+        controls: ['least-privilege'],
+        evidence: []
+      },
+      risk: {
+        level: 'high',
+        factors: ['production-data', 'unauthorized-access'],
+        mitigation: ['role-restriction', 'path-filtering'],
+        reviewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    },
+    version: 1,
+    createdAt: new Date('2024-01-10').toISOString(),
+    updatedAt: new Date('2024-01-10').toISOString(),
+    createdBy: 'admin'
+  },
+  {
+    id: 'policy-ml-access',
+    name: 'ml-access',
+    displayName: 'ML Team Access',
+    description: 'Allow ML team to access AI and data secrets',
+    effect: 'allow',
+    priority: 150,
+    status: 'active',
+    rules: [
+      {
+        id: 'rule-ml-role',
+        type: 'role',
+        value: ['ml-engineer', 'data-scientist'],
+        operator: 'in'
+      },
+      {
+        id: 'rule-ml-namespace',
+        type: 'namespace',
+        value: 'ml',
+        operator: 'equals'
+      }
+    ],
+    targets: {
+      resources: ['secrets'],
+      actions: ['read', 'bind'],
+      pathPrefixes: ['kv/data/ml/', 'azure/ml/'],
+      targetTypes: ['mcp-server', 'notebook', 'job']
+    },
+    conditions: [],
+    metadata: {
+      category: 'team-access',
+      tags: ['ml', 'ai', 'allow'],
+      labels: { team: 'ml' },
+      annotations: {},
+      compliance: {
+        standards: ['SOC2'],
+        requirements: ['ai-data-access'],
+        controls: ['role-based-access'],
+        evidence: []
+      },
+      risk: {
+        level: 'medium',
+        factors: ['ai-model-access'],
+        mitigation: ['role-restriction', 'namespace-isolation'],
+        reviewDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    },
+    version: 1,
+    createdAt: new Date('2024-01-20').toISOString(),
+    updatedAt: new Date('2024-01-20').toISOString(),
+    createdBy: 'admin'
+  }
+];
+
 // Mock service responses
 export const createMockResponse = <T>(data: T, success: boolean = true, message?: string) => ({
   data,
@@ -626,6 +1054,17 @@ export const shouldUseMockData = (): boolean => {
     (typeof window !== 'undefined' && window.location.port === '5173')
   );
 };
+
+// ============================================================================
+// MOCK DATA GETTERS
+// ============================================================================
+
+export const getMockProviders = (): Provider[] => mockProviders;
+export const getMockSecretReferences = (): SecretReference[] => mockSecretReferences;
+export const getMockBindings = (): MCPServerBinding[] => mockBindings;
+export const getMockRoles = (): Role[] => mockRoles;
+export const getMockPermissions = (): RBACPermission[] => mockPermissions;
+export const getMockPolicies = (): Policy[] => mockPolicies;
 
 // Mock delay to simulate network latency
 export const mockDelay = (ms: number = 100): Promise<void> => {
