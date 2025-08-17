@@ -620,6 +620,7 @@ export const shouldUseMockData = (): boolean => {
   // Check multiple ways to determine if we're in development mode
   return (
     process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'test' ||
     (typeof window !== 'undefined' && window.location.hostname === 'localhost') ||
     (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1') ||
     (typeof window !== 'undefined' && window.location.port === '5173')

@@ -13,6 +13,7 @@ import {
 } from '../types/bindings';
 import { secretsService } from './secrets';
 import { providersService } from './providers';
+import { mockBindings, shouldUseMockData, mockDelay } from './mockData';
 
 export class BindingsService {
   private bindings: Map<string, MCPServerBinding> = new Map();
@@ -51,6 +52,17 @@ export class BindingsService {
         return this.bindings.get(id)!;
       }
 
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        await mockDelay();
+        const mockBinding = mockBindings.find(b => b.id === id);
+        if (mockBinding) {
+          this.bindings.set(id, mockBinding);
+          return mockBinding;
+        }
+        return null;
+      }
+
       const response = await api.get(`/mcp-bindings/${id}`);
       
       if (response.success && response.data) {
@@ -61,6 +73,16 @@ export class BindingsService {
       return null;
     } catch (error) {
       console.error(`Failed to get MCP binding ${id}:`, error);
+      
+      // Fall back to mock data in development
+      if (process.env.NODE_ENV === 'development') {
+        const mockBinding = mockBindings.find(b => b.id === id);
+        if (mockBinding) {
+          this.bindings.set(id, mockBinding);
+          return mockBinding;
+        }
+      }
+      
       return null;
     }
   }
@@ -98,6 +120,20 @@ export class BindingsService {
 
   async listBindings(filter?: BindingFilter): Promise<BindingSearchResult> {
     try {
+      // In development with mock data enabled, return mock data
+      if (shouldUseMockData()) {
+        await mockDelay();
+        const filteredBindings = this.filterMockBindings(mockBindings, filter);
+        return {
+          bindings: filteredBindings,
+          total: filteredBindings.length,
+          page: 1,
+          perPage: filteredBindings.length,
+          totalPages: 1,
+          facets: this.generateMockFacets(filteredBindings)
+        };
+      }
+
       const params = this.buildFilterParams(filter);
       const response = await api.get('/mcp-bindings', { params });
       
@@ -131,6 +167,20 @@ export class BindingsService {
       };
     } catch (error) {
       console.error('Failed to list MCP bindings:', error);
+      
+      // Fall back to mock data in development
+      if (process.env.NODE_ENV === 'development') {
+        const filteredBindings = this.filterMockBindings(mockBindings, filter);
+        return {
+          bindings: filteredBindings,
+          total: filteredBindings.length,
+          page: 1,
+          perPage: filteredBindings.length,
+          totalPages: 1,
+          facets: this.generateMockFacets(filteredBindings)
+        };
+      }
+      
       throw error;
     }
   }
@@ -521,6 +571,81 @@ export class BindingsService {
     } catch (error) {
       console.error('Failed to load MCP bindings:', error);
     }
+  }
+
+  private filterMockBindings(bindings: MCPServerBinding[], filter?: BindingFilter): MCPServerBinding[] {
+    if (!filter) return bindings;
+
+    return bindings.filter(binding => {
+      if (filter.name && !binding.name.toLowerCase().includes(filter.name.toLowerCase())) {
+        return false;
+      }
+      if (filter.serverId && binding.serverId !== filter.serverId) {
+        return false;
+      }
+      if (filter.serverType && binding.serverType !== filter.serverType) {
+        return false;
+      }
+      if (filter.environment && binding.environment !== filter.environment) {
+        return false;
+      }
+      if (filter.namespace && binding.namespace !== filter.namespace) {
+        return false;
+      }
+      if (filter.project && binding.project !== filter.project) {
+        return false;
+      }
+      if (filter.status && binding.status !== filter.status) {
+        return false;
+      }
+      if (filter.healthStatus && binding.healthStatus !== filter.healthStatus) {
+        return false;
+      }
+      if (filter.validationStatus && binding.validationStatus.status !== filter.validationStatus) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private generateMockFacets(bindings: MCPServerBinding[]) {
+    const serverTypes = new Map<string, number>();
+    const environments = new Map<string, number>();
+    const namespaces = new Map<string, number>();
+    const projects = new Map<string, number>();
+    const statuses = new Map<string, number>();
+    const healthStatuses = new Map<string, number>();
+    const validationStatuses = new Map<string, number>();
+    const tags = new Map<string, number>();
+
+    bindings.forEach(binding => {
+      serverTypes.set(binding.serverType, (serverTypes.get(binding.serverType) || 0) + 1);
+      environments.set(binding.environment, (environments.get(binding.environment) || 0) + 1);
+      namespaces.set(binding.namespace, (namespaces.get(binding.namespace) || 0) + 1);
+      if (binding.project) {
+        projects.set(binding.project, (projects.get(binding.project) || 0) + 1);
+      }
+      statuses.set(binding.status, (statuses.get(binding.status) || 0) + 1);
+      healthStatuses.set(binding.healthStatus, (healthStatuses.get(binding.healthStatus) || 0) + 1);
+      validationStatuses.set(binding.validationStatus.status, (validationStatuses.get(binding.validationStatus.status) || 0) + 1);
+      binding.tags.forEach(tag => {
+        tags.set(tag, (tags.get(tag) || 0) + 1);
+      });
+    });
+
+    const mapToFacetCount = (map: Map<string, number>) => 
+      Array.from(map.entries()).map(([value, count]) => ({ value, count }));
+
+    return {
+      serverTypes: mapToFacetCount(serverTypes),
+      environments: mapToFacetCount(environments),
+      namespaces: mapToFacetCount(namespaces),
+      projects: mapToFacetCount(projects),
+      statuses: mapToFacetCount(statuses),
+      healthStatuses: mapToFacetCount(healthStatuses),
+      validationStatuses: mapToFacetCount(validationStatuses),
+      tags: mapToFacetCount(tags)
+    };
   }
 
   // Cleanup
