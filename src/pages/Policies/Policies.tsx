@@ -310,9 +310,6 @@ const Policies: React.FC = () => {
             <Card 
               isClickable 
               onClick={() => navigate(`/policies/${policy.id}`)}
-              selectableActions={{
-                selectableActionAriaLabel: `View ${policy.name} policy details`
-              }}
             >
               <CardHeader>
                 <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>

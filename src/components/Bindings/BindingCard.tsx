@@ -338,9 +338,6 @@ const BindingCard: React.FC<BindingCardProps> = ({
       isSelected={isSelected}
       onClick={isSelectable ? handleSelect : undefined}
       className="binding-card"
-      selectableActions={{
-        selectableActionAriaLabel: `View ${binding.name} binding details`
-      }}
     >
       <CardHeader>
         <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>

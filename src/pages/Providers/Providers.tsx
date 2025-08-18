@@ -198,9 +198,6 @@ const Providers: React.FC = () => {
             <Card 
               isClickable 
               onClick={() => navigate(`/providers/${provider.id}`)}
-              selectableActions={{
-                selectableActionAriaLabel: `View ${provider.name} provider details`
-              }}
             >
               <CardHeader>
                 <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>

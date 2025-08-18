@@ -317,9 +317,6 @@ const Bindings: React.FC = () => {
             <Card 
               isClickable 
               onClick={() => navigate(`/bindings/${binding.id}`)}
-              selectableActions={{
-                selectableActionAriaLabel: `View ${binding.name} binding details`
-              }}
             >
               <CardHeader>
                 <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
