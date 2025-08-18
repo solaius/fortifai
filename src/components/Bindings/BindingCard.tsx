@@ -333,7 +333,7 @@ const BindingCard: React.FC<BindingCardProps> = ({
 
   return (
     <Card
-      isHoverable
+      isClickable
       isSelectable={isSelectable}
       isSelected={isSelected}
       onClick={isSelectable ? handleSelect : undefined}

@@ -282,7 +282,7 @@ const SecretCard: React.FC<SecretCardProps> = ({
 
   return (
     <Card
-      isHoverable
+      isClickable
       isSelectable={isSelectable}
       isSelected={isSelected}
       onClick={isSelectable ? handleSelect : undefined}

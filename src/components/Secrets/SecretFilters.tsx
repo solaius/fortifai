@@ -264,52 +264,65 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Provider">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedProviders}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleProviderChange(selection as string)}
-                   placeholderText="Select providers"
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select providers
+                     </MenuToggle>
+                   )}
                  >
-                  {providers.map(provider => (
-                    <SelectOption key={provider.id} value={provider.id}>
-                      {provider.name} ({provider.type})
-                    </SelectOption>
-                  ))}
-                </Select>
+                   <DropdownList>
+                     {providers.map(provider => (
+                       <DropdownItem key={provider.id} value={provider.id}>
+                         {provider.name} ({provider.type})
+                       </DropdownItem>
+                     ))}
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Namespace">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedNamespaces}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleNamespaceChange(selection as string)}
-                   placeholderText="Select namespaces"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select namespaces
+                     </MenuToggle>
+                   )}
                  >
-                  {namespaces.map(namespace => (
-                    <SelectOption key={namespace} value={namespace}>
-                      {namespace}
-                    </SelectOption>
-                  ))}
-                </Select>
+                   <DropdownList>
+                     {namespaces.map(namespace => (
+                       <DropdownItem key={namespace} value={namespace}>
+                         {namespace}
+                       </DropdownItem>
+                     ))}
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Project">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedProjects}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleProjectChange(selection as string)}
-                   placeholderText="Select projects"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select projects
+                     </MenuToggle>
+                   )}
                  >
-                  {projects.map(project => (
-                    <SelectOption key={project} value={project}>
-                      {project}
-                    </SelectOption>
-                  ))}
-                </Select>
+                   <DropdownList>
+                     {projects.map(project => (
+                       <DropdownItem key={project} value={project}>
+                         {project}
+                       </DropdownItem>
+                     ))}
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
           </Grid>
@@ -325,102 +338,126 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
           <Grid hasGutter>
             <GridItem span={6}>
               <FormGroup label="Category">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedCategories}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleCategoryChange(selection as string)}
-                   placeholderText="Select categories"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select categories
+                     </MenuToggle>
+                   )}
                  >
-                  {categories.map(category => (
-                    <SelectOption key={category} value={category}>
-                      {category}
-                    </SelectOption>
-                  ))}
-                </Select>
+                   <DropdownList>
+                     {categories.map(category => (
+                       <DropdownItem key={category} value={category}>
+                         {category}
+                       </DropdownItem>
+                     ))}
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Team">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedTeams}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleTeamChange(selection as string)}
-                   placeholderText="Select teams"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select teams
+                     </MenuToggle>
+                   )}
                  >
-                  {teams.map(team => (
-                    <SelectOption key={team} value={team}>
-                      {team}
-                    </SelectOption>
-                  ))}
-                </Select>
+                   <DropdownList>
+                     {teams.map(team => (
+                       <DropdownItem key={team} value={team}>
+                         {team}
+                       </DropdownItem>
+                     ))}
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Classification">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedClassifications}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleClassificationChange(selection as string)}
-                   placeholderText="Select classifications"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select classifications
+                     </MenuToggle>
+                   )}
                  >
-                  <SelectOption value="public">Public</SelectOption>
-                  <SelectOption value="internal">Internal</SelectOption>
-                  <SelectOption value="confidential">Confidential</SelectOption>
-                  <SelectOption value="restricted">Restricted</SelectOption>
-                  <SelectOption value="secret">Secret</SelectOption>
-                </Select>
+                   <DropdownList>
+                     <DropdownItem value="public">Public</DropdownItem>
+                     <DropdownItem value="internal">Internal</DropdownItem>
+                     <DropdownItem value="confidential">Confidential</DropdownItem>
+                     <DropdownItem value="restricted">Restricted</DropdownItem>
+                     <DropdownItem value="secret">Secret</DropdownItem>
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Environment">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedEnvironments}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleEnvironmentChange(selection as string)}
-                   placeholderText="Select environments"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select environments
+                     </MenuToggle>
+                   )}
                  >
-                  <SelectOption value="development">Development</SelectOption>
-                  <SelectOption value="staging">Staging</SelectOption>
-                  <SelectOption value="production">Production</SelectOption>
-                  <SelectOption value="testing">Testing</SelectOption>
-                </Select>
+                   <DropdownList>
+                     <DropdownItem value="development">Development</DropdownItem>
+                     <DropdownItem value="staging">Staging</DropdownItem>
+                     <DropdownItem value="production">Production</DropdownItem>
+                     <DropdownItem value="testing">Testing</DropdownItem>
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Priority">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedPriorities}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handlePriorityChange(selection as string)}
-                   placeholderText="Select priorities"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select priorities
+                     </MenuToggle>
+                   )}
                  >
-                  <SelectOption value="low">Low</SelectOption>
-                  <SelectOption value="medium">Medium</SelectOption>
-                  <SelectOption value="high">High</SelectOption>
-                  <SelectOption value="critical">Critical</SelectOption>
-                </Select>
+                   <DropdownList>
+                     <DropdownItem value="low">Low</DropdownItem>
+                     <DropdownItem value="medium">Medium</DropdownItem>
+                     <DropdownItem value="high">High</DropdownItem>
+                     <DropdownItem value="critical">Critical</DropdownItem>
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
             <GridItem span={6}>
               <FormGroup label="Tags">
-                                 <Select
-                   variant="checkbox"
-                   selections={selectedTags}
+                                 <Dropdown
+                   isOpen={false}
                    onSelect={(event, selection) => handleTagChange(selection as string)}
-                   placeholderText="Select tags"
-
+                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                     <MenuToggle ref={toggleRef} onClick={() => {}} isExpanded={false}>
+                       Select tags
+                     </MenuToggle>
+                   )}
                  >
-                  <SelectOption value="database">Database</SelectOption>
-                  <SelectOption value="api">API</SelectOption>
-                  <SelectOption value="credentials">Credentials</SelectOption>
-                  <SelectOption value="certificates">Certificates</SelectOption>
-                  <SelectOption value="keys">Keys</SelectOption>
-                </Select>
+                   <DropdownList>
+                     <DropdownItem value="database">Database</DropdownItem>
+                     <DropdownItem value="api">API</DropdownItem>
+                     <DropdownItem value="credentials">Credentials</DropdownItem>
+                     <DropdownItem value="certificates">Certificates</DropdownItem>
+                     <DropdownItem value="keys">Keys</DropdownItem>
+                   </DropdownList>
+                 </Dropdown>
               </FormGroup>
             </GridItem>
           </Grid>

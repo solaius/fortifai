@@ -314,7 +314,7 @@ const Bindings: React.FC = () => {
       <Grid hasGutter className="pf-v5-u-mt-md">
         {filteredBindings.map((binding) => (
           <GridItem key={binding.id} span={6}>
-            <Card isHoverable onClick={() => navigate(`/bindings/${binding.id}`)}>
+            <Card isClickable onClick={() => navigate(`/bindings/${binding.id}`)}>
               <CardHeader>
                 <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
                   {getTargetTypeIcon(binding.targetType)}

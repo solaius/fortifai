@@ -195,7 +195,7 @@ const Providers: React.FC = () => {
       <Grid hasGutter className="pf-v5-u-mt-md">
         {providers.map((provider) => (
           <GridItem key={provider.id} span={4}>
-            <Card isHoverable onClick={() => navigate(`/providers/${provider.id}`)}>
+            <Card isClickable onClick={() => navigate(`/providers/${provider.id}`)}>
               <CardHeader>
                 <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
                   {getProviderIcon(provider.type)}
