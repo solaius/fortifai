@@ -15,8 +15,11 @@ import {
   Alert,
   AlertVariant,
   SearchInput,
-  Select,
-  SelectOption,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
   Toolbar,
   ToolbarContent,
   ToolbarItem,
@@ -242,38 +245,48 @@ const Policies: React.FC = () => {
               />
             </ToolbarItem>
             <ToolbarItem>
-              <Select
+              <Dropdown
                 isOpen={isEffectFilterOpen}
-                onToggle={() => setIsEffectFilterOpen(!isEffectFilterOpen)}
-                selections={effectFilter}
                 onSelect={(event, selection) => {
                   setEffectFilter(selection as string);
                   setIsEffectFilterOpen(false);
                 }}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle ref={toggleRef} onClick={() => setIsEffectFilterOpen(!isEffectFilterOpen)} isExpanded={isEffectFilterOpen}>
+                    {effectOptions.find(option => option.value === effectFilter)?.label || 'All Effects'}
+                  </MenuToggle>
+                )}
               >
-                {effectOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
+                <DropdownList>
+                  {effectOptions.map((option) => (
+                    <DropdownItem key={option.value} value={option.value}>
+                      {option.label}
+                    </DropdownItem>
+                  ))}
+                </DropdownList>
+              </Dropdown>
             </ToolbarItem>
             <ToolbarItem>
-              <Select
+              <Dropdown
                 isOpen={isStatusFilterOpen}
-                onToggle={() => setIsStatusFilterOpen(!isStatusFilterOpen)}
-                selections={statusFilter}
                 onSelect={(event, selection) => {
                   setStatusFilter(selection as string);
                   setIsStatusFilterOpen(false);
                 }}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle ref={toggleRef} onClick={() => setIsStatusFilterOpen(!isStatusFilterOpen)} isExpanded={isStatusFilterOpen}>
+                    {statusOptions.find(option => option.value === statusFilter)?.label || 'All Status'}
+                  </MenuToggle>
+                )}
               >
-                {statusOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
+                <DropdownList>
+                  {statusOptions.map((option) => (
+                    <DropdownItem key={option.value} value={option.value}>
+                      {option.label}
+                    </DropdownItem>
+                  ))}
+                </DropdownList>
+              </Dropdown>
             </ToolbarItem>
           </ToolbarGroup>
           <ToolbarGroup>

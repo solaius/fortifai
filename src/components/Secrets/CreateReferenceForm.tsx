@@ -5,9 +5,11 @@ import {
   FormSection,
   TextInput,
   TextArea,
-  Select,
-  SelectOption,
-  SelectVariant,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
   Checkbox,
   NumberInput,
   Button,
@@ -521,7 +523,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
               <GridItem span={6}>
                 <FormGroup label="Provider" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.providerId}
                     onSelect={(event, selection) => handleInputChange(selection as string, 'providerId')}
                     placeholderText="Select provider"
@@ -583,7 +585,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
               <GridItem span={6}>
                 <FormGroup label="Priority" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.priority}
                     onSelect={(event, selection) => handleSelectChange(selection as string, 'priority')}
                     isRequired
@@ -598,7 +600,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
               <GridItem span={6}>
                 <FormGroup label="Secret Type" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.secretType}
                     onSelect={(event, selection) => handleSelectChange(selection as string, 'secretType')}
                     isRequired
@@ -615,7 +617,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
               <GridItem span={6}>
                 <FormGroup label="Format" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.format}
                     onSelect={(event, selection) => handleSelectChange(selection as string, 'format')}
                     isRequired
@@ -632,7 +634,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
               <GridItem span={6}>
                 <FormGroup label="Classification" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.classification}
                     onSelect={(event, selection) => handleSelectChange(selection as string, 'classification')}
                     isRequired
@@ -648,7 +650,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
               <GridItem span={6}>
                 <FormGroup label="Environment" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.environment}
                     onSelect={(event, selection) => handleSelectChange(selection as string, 'environment')}
                     isRequired
@@ -1005,7 +1007,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
                   <>
                     <FormGroup label="Rotation Type">
                       <Select
-                        variant={SelectVariant.single}
+                        variant={"single"}
                         selections={formData.rotationType}
                         onSelect={(event, selection) => handleSelectChange(selection as string, 'rotationType')}
                       >
@@ -1017,7 +1019,7 @@ const CreateReferenceForm: React.FC<CreateReferenceFormProps> = ({
                     </FormGroup>
                     <FormGroup label="Rotation Method">
                       <Select
-                        variant={SelectVariant.single}
+                        variant={"single"}
                         selections={formData.rotationMethod}
                         onSelect={(event, selection) => handleSelectChange(selection as string, 'rotationMethod')}
                       >

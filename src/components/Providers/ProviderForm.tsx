@@ -5,9 +5,11 @@ import {
   FormSection,
   TextInput,
   TextArea,
-  Select,
-  SelectOption,
-  SelectVariant,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
   Checkbox,
   NumberInput,
   Button,
@@ -464,7 +466,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ provider, isEdit = false })
 
       <FormGroup label="Authentication Method" isRequired>
         <Select
-          variant={SelectVariant.single}
+          variant={"single"}
           selections={formData.vaultAuthMethod}
           onSelect={(event, selection) => handleInputChange(selection as string, 'vaultAuthMethod')}
         >
@@ -582,7 +584,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ provider, isEdit = false })
         <GridItem span={6}>
           <FormGroup label="Region" isRequired>
             <Select
-              variant={SelectVariant.single}
+              variant={"single"}
               selections={formData.awsRegion}
               onSelect={(event, selection) => handleInputChange(selection as string, 'awsRegion')}
             >
@@ -628,7 +630,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ provider, isEdit = false })
 
       <FormGroup label="Authentication Method" isRequired>
         <Select
-          variant={SelectVariant.single}
+          variant={"single"}
           selections={formData.awsAuthMethod}
           onSelect={(event, selection) => handleInputChange(selection as string, 'awsAuthMethod')}
         >
@@ -736,7 +738,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ provider, isEdit = false })
         <GridItem span={6}>
           <FormGroup label="Environment">
             <Select
-              variant={SelectVariant.single}
+              variant={"single"}
               selections={formData.azureEnvironment}
               onSelect={(event, selection) => handleInputChange(selection as string, 'azureEnvironment')}
             >
@@ -762,7 +764,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ provider, isEdit = false })
 
       <FormGroup label="Authentication Method" isRequired>
         <Select
-          variant={SelectVariant.single}
+          variant={"single"}
           selections={formData.azureAuthMethod}
           onSelect={(event, selection) => handleInputChange(selection as string, 'azureAuthMethod')}
         >
@@ -846,7 +848,7 @@ const ProviderForm: React.FC<ProviderFormProps> = ({ provider, isEdit = false })
               <GridItem span={6}>
                 <FormGroup label="Provider Type" isRequired>
                   <Select
-                    variant={SelectVariant.single}
+                    variant={"single"}
                     selections={formData.type}
                     onSelect={(event, selection) => handleInputChange(selection as string, 'type')}
                     isDisabled={isEdit}

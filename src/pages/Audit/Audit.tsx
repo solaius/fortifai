@@ -15,8 +15,11 @@ import {
   Alert,
   AlertVariant,
   SearchInput,
-  Select,
-  SelectOption,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
   Toolbar,
   ToolbarContent,
   ToolbarItem,
@@ -309,38 +312,48 @@ const Audit: React.FC = () => {
               />
             </ToolbarItem>
             <ToolbarItem>
-              <Select
+              <Dropdown
                 isOpen={isActionFilterOpen}
-                onToggle={() => setIsActionFilterOpen(!isActionFilterOpen)}
-                selections={actionFilter}
                 onSelect={(event, selection) => {
                   setActionFilter(selection as string);
                   setIsActionFilterOpen(false);
                 }}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle ref={toggleRef} onClick={() => setIsActionFilterOpen(!isActionFilterOpen)} isExpanded={isActionFilterOpen}>
+                    {actionOptions.find(option => option.value === actionFilter)?.label || 'All Actions'}
+                  </MenuToggle>
+                )}
               >
-                {actionOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
+                <DropdownList>
+                  {actionOptions.map((option) => (
+                    <DropdownItem key={option.value} value={option.value}>
+                      {option.label}
+                    </DropdownItem>
+                  ))}
+                </DropdownList>
+              </Dropdown>
             </ToolbarItem>
             <ToolbarItem>
-              <Select
+              <Dropdown
                 isOpen={isOutcomeFilterOpen}
-                onToggle={() => setIsOutcomeFilterOpen(!isOutcomeFilterOpen)}
-                selections={outcomeFilter}
                 onSelect={(event, selection) => {
                   setOutcomeFilter(selection as string);
                   setIsOutcomeFilterOpen(false);
                 }}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle ref={toggleRef} onClick={() => setIsOutcomeFilterOpen(!isOutcomeFilterOpen)} isExpanded={isOutcomeFilterOpen}>
+                    {outcomeOptions.find(option => option.value === outcomeFilter)?.label || 'All Outcomes'}
+                  </MenuToggle>
+                )}
               >
-                {outcomeOptions.map((option) => (
-                  <SelectOption key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectOption>
-                ))}
-              </Select>
+                <DropdownList>
+                  {outcomeOptions.map((option) => (
+                    <DropdownItem key={option.value} value={option.value}>
+                      {option.label}
+                    </DropdownItem>
+                  ))}
+                </DropdownList>
+              </Dropdown>
             </ToolbarItem>
           </ToolbarGroup>
           <ToolbarGroup>

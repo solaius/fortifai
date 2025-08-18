@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import {
   ExpandableSection,
   TextInput,
-  Select,
-  SelectOption,
-
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
   Checkbox,
   Button,
   ButtonVariant,
@@ -16,7 +18,6 @@ import {
   ChipGroup,
   Chip,
   DatePicker,
-
   TimePicker,
   TimePickerInput,
   Divider,
