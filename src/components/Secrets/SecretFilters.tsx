@@ -258,7 +258,6 @@ const SecretFilters: React.FC<SecretFiltersProps> = ({
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search secret names and descriptions..."
-                  iconVariant="search"
                 />
               </FormGroup>
             </GridItem>

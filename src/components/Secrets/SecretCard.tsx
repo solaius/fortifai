@@ -287,6 +287,9 @@ const SecretCard: React.FC<SecretCardProps> = ({
       isSelected={isSelected}
       onClick={isSelectable ? handleSelect : undefined}
       className="secret-card"
+      selectableActions={{
+        selectableActionAriaLabel: `View ${secret.metadata.name} secret details`
+      }}
     >
       <CardHeader>
         <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>

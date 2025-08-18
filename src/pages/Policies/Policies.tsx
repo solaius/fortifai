@@ -307,7 +307,13 @@ const Policies: React.FC = () => {
       <Grid hasGutter className="pf-v5-u-mt-md">
         {filteredPolicies.map((policy) => (
           <GridItem key={policy.id} span={6}>
-            <Card isClickable onClick={() => navigate(`/policies/${policy.id}`)}>
+            <Card 
+              isClickable 
+              onClick={() => navigate(`/policies/${policy.id}`)}
+              selectableActions={{
+                selectableActionAriaLabel: `View ${policy.name} policy details`
+              }}
+            >
               <CardHeader>
                 <Flex alignItems={{ default: 'alignItemsCenter' }} gap={{ default: 'gapMd' }}>
                   <ShieldAltIcon style={{ color: 'var(--pf-v5-global--primary-color--100)' }} />

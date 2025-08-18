@@ -17,12 +17,16 @@ function AppContent() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/providers" element={<Providers />} />
         <Route path="/providers/new" element={<Providers />} />
+        <Route path="/providers/:id" element={<Providers />} />
         <Route path="/secrets" element={<Secrets />} />
         <Route path="/secrets/new" element={<Secrets />} />
+        <Route path="/secrets/:id" element={<Secrets />} />
         <Route path="/bindings" element={<Bindings />} />
         <Route path="/bindings/new" element={<Bindings />} />
+        <Route path="/bindings/:id" element={<Bindings />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/policies/new" element={<Policies />} />
+        <Route path="/policies/:id" element={<Policies />} />
         <Route path="/audit" element={<Audit />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
